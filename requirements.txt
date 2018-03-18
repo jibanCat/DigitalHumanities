@@ -1,0 +1,9 @@
+ctext
+itertools
+functools
+operator
+string
+re
+pandas
+matplotlib
+numpy
