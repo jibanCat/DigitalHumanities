@@ -14,6 +14,11 @@ so we could share and run our notebooks in the Jupyterhub server with the same c
   
 - **Future works**: I hope I could put some of my experiments in Chinese characters in the future
 
+ - Python Basics:
+  1. Basic 1: string formatting, for loop, list comprehension,  map, args & kargs
+  2. Basic 2: filter, lambda, string methods, names and values, boolean values, mutation, loop
+  3. Basic 3: regex, class, recursive
+
 # (**中文**) 中文的數位人文 notebook, Binder!
 - 來源：三本在[數位漢學]((https://digitalsinology.org/classical-chinese-digital-humanities/))上的 notebooks，由[Donald Sturgeon](http://dsturgeon.net/about)教授設計撰寫。 我則回答了裡面的一些習題，當然，你可以跳過它們如果你不喜歡我的答案。
 - [**Binder link**](https://mybinder.org/v2/gh/jibanCat/DigitalHumanities/master): Binder 是一個可以將 Github repository 放到伺服器上去跑的計畫。基本上是使用 Jupyterhub 伺服器跟使用 requirements.txt 去找要去安裝哪些套件。有了這個 Binder，我們就能互相分享我們在 Github 上的 notebooks 然後使用同樣的電腦環境在伺服器上執行程式：
