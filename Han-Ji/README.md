@@ -12,11 +12,13 @@ but it is fine if you feed in the whole url like `--URL=http://hanchi.ihp.sinica
 ----
 ## Details of the Output Format
 - Passage (本文): file name is `(#)_Passage_(Name of the Passage).csv`.
+
 | Column Name | passage (本文, 段落) | comment (註, 本文段落之後的第一個註) |
 | ---- | ----    | ----    |
 | Criteria    | _ | `<font size=?></font>`, font tags with a size attribute |
 
 - Head (標題): file name is `(#)_Head_(Name of the Passage).csv`.
+
 | Column Name | passage (標題) | comment (註, 標題之後的第一個註) | author (作者，其實也有可能抓到的不是作者) |
 | ---- | ----    | ----    | ---- |
 | Criteria    | `<h3></h3>`, `h3` tag | `<font size=?></font>`, font tags with a size attribute | `<div align=?></div>`, `div` tag with a align attribute |
