@@ -4,7 +4,7 @@ and we separated the passages iteself (本文) and the comments (註) into diffe
 
 The general usage of this script: just typing the following command in the terminal
 ```bash
-python Scraping --URL=hanji?@72^74245715^802^^^60407005000900010001@@355855896
+python Scraping.py --URL=hanji?@72^74245715^802^^^60407005000900010001@@355855896
 ```
 The `--URL` flag takes the last part of url address of the text page of Han-Ji (漢籍), 
 but it is fine if you feed in the whole url like `--URL=http://hanchi.ihp.sinica.edu.tw/ihpc/hanji?@72^74245715^802^^^60407005000900010001@@355855896`.
