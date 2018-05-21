@@ -1,0 +1,240 @@
+from collections import defaultdict
+from bs4 import BeautifulSoup
+import bs4
+from urllib import request
+import urllib
+import time
+import random
+import re
+import os
+import glob
+
+
+class Book:
+    """Han-Ji '<http://hanchi.ihp.sinica.edu.tw/ihp/hanji.htm>'_ Dataset.
+    
+    Attributes:
+        flat_bodies (list): a list contained all htmls 
+        flat_passages (list): a list contained all text of passages. Users sould define their own methods to organize the passages.
+        flat_heads (list): a list contained all text of heads. Users sould define their own methods to organize the heads.
+        flat_meta (list): a list contained all metadata(dictionary). User sould define their own methods to extract metadata.
+        paths (list): a list of paths extracted from bookmark. e.g., 集／總集／文選／卷第二十七　詩戊之一／樂府上／古樂府三首／飲馬長城窟行(P.1277)
+        author_bag (dict): a dictionary stores all authors name and their comments. The structure is like this: 
+        author_bag is a template that allow you to use for further applications such as extrac metadata, but it is not working well for every books. 
+        
+    
+    Args: 
+        bookname (string): the name of the book, default = ''
+        date (string): the date of the book you scraped, default = None
+        creator (string): the name of the creator who create the instance
+        description (string): optional description for the instance
+        
+    Methods:
+        fetch_data(URL): fetch book bs4 obj from a start page URL of a Book in Han-Ji
+        extract_paths(): extract paths from bookmark in self.flat_bodies list and append paths to self.paths
+        get_author_bag(): extract paths from bookmark in self.flat_bodies list and append paths to self.paths
+        write_htmls(path): write data into htmls on the disk in path
+        load_htmls(path): load data from htmls on the disk in path
+    """
+    
+    def __init__(self, bookname='', date=None, creator=None, description=''):
+        self.flat_bodies   = []
+        self.flat_passages = []
+        self.flat_heads    = []
+        self.flat_meta     = []
+        self.paths = []
+        self.author_bag = defaultdict(list)
+        self.bookname    = bookname
+        self.date        = date
+        self.creator     = creator
+        self.description = description
+        
+    def __getitem__(self, index):
+        '''
+        Args:
+            index (int): Index
+            
+        Returns:
+            bs4 html object in the flat_bodies
+        '''
+        return self.flat_bodies[index]
+    
+    def __len__(self):
+        return len(self.flat_bodies)
+    
+    def __repr__(self):
+        fmt_str = "Dataset {} ".format(self.bookname)
+        fmt_str += "created by {} at {}.\n".format(self.creator, self.date)
+        fmt_str += "{} data points. ".format(self.__len__()) 
+        if len(self.author_bag) > 2:
+            fmt_str += "\n{} authors and commentars.\n".format(len(self.author_bag))
+        fmt_str += self.description
+        return fmt_str
+    
+    def fetch_data(self, URL, pages_limit=1000, print_bookmark=False,
+                   BASE_URL='http://hanchi.ihp.sinica.edu.tw/ihpc/'):
+        '''fetch book bs4 obj from a start page URL of a Book in Han-Ji
+        
+        Args:
+            URL (string): the start page url from han-ji website
+            page_limit (int): the limit of next pages you can scrape. default = 1000
+            print_bookmark (bool): print the bookmark while fetching the data. default = False
+        '''
+        for i in range(pages_limit):            
+            # use urllib.request to get the html content of the web
+            req  = request.Request(URL, headers={'User-Agent': 'Mozilla/5.0'})
+            page = request.urlopen(req)
+            soup = BeautifulSoup(page, 'lxml')
+
+            # show information on the screen
+            if print_bookmark == True:
+                print("[Info] Start fetching {}. {}/{} epoch.".format(
+                    soup.find('a', attrs={'class', 'gobookmark'}).text, i + 1, pages_limit))            
+            else:
+                print("[Info] Start fetching {}. {}/{} epoch.".format(URL, i + 1, pages_limit))            
+            
+            # check if it is the same as previous page
+            if i > 0:
+                buffer = self.flat_bodies[-1].find_all('div', attrs={'style': True})
+            else:
+                # used a dummy list for the buffer for the first page
+                buffer = ['dummy']
+            
+            # if the 1st and last elemets in the buffer is the same as current page
+            # delete page and save the current page.
+            if (buffer[-1] == 
+                soup.find_all('div', attrs={'style': True})[-1]) and (
+                buffer[0] == 
+                soup.find_all('div', attrs={'style': True})[0]):
+                print("[Warning] This page is the same as the previous one, discard previous one and store the new one.")
+                self.flat_bodies[-1] = soup
+            else:
+            # append to flat bodies
+               self.flat_bodies.append(soup)
+            
+            # find the next page
+            next_page = soup.find('img', {'src' : '/ihp/snext.gif'})
+            if next_page != None:
+                url = next_page.find_parent()['href']
+            else:
+                print('[Info] No further next page. Stop fetching.')
+                break
+                
+            URL = urllib.parse.urljoin(BASE_URL, url)
+            time.sleep(random.randint(1, 3))
+            
+    def extract_paths(self):
+        '''extract paths from bookmark in self.flat_bodies list and append paths to self.paths'''
+        for soup in self.flat_bodies:
+            # extract gobookmark
+            path  = soup.find('a', attrs={'class', 'gobookmark'}).text
+            self.paths.append(path)
+    
+    def get_author_bag(self, indent=4, name_length_limit=5):
+        '''gather a bag of authors (with comments) into a dict based on indents.
+        If indents + paddings are smaller than indent(default=4) and length of the name is smaller than name_length_limit(default=5), then consider it as an author name.
+        '''
+        buffer_author = None
+        
+        for i,soup in enumerate(self.flat_bodies):
+            # get the text body
+            body  = soup.find_all('span', {'id' : 'fontstyle'})[0]
+            author_list = self._plausible_authorlist(body, indent)
+            
+            for author_text in author_list:
+                # one possible dangerous here is that next may not 
+                # be enough if there are multiple authors in one line
+                try:
+                    author = next(iter(self._author_yield(author_text)))
+                except StopIteration:
+                    author = None
+                try:
+                    tag = next(iter(self._tag_yield(author_text)))
+                    if author is None:
+                        print("[Warning] No author name in {} item, but got a tag. Attach this tag to previous author name {}.".format(i, buffer_author))
+                        author = buffer_author 
+                except StopIteration:
+                    if author:
+                        tag = ''
+                        
+                if author:
+                    # check the length of the author name
+                    # split the name with space and check the mean of length
+                    author_split = author.split()
+                    if sum([len(x) for x in author_split]) / len(author_split) < name_length_limit:
+                        # add new key in the author_bag
+                        self.author_bag[author].append((i, tag))    
+                    else:
+                        print("[Warning] Author name, {} in {}, is too long. Discard this one.".format(author, i))
+                        continue
+                    
+                buffer_author = author
+                
+    def _sum_indent_and_padding(self, texts):
+        '''Return the sum of indents and paddings in the texts.'''
+        return [
+            sum([int(num[0]), int(num[1])])
+             for text in texts 
+             for num in re.findall(r'text-indent:(.*?)em;padding-left:(.*?)em;', text['style'])
+        ]        
+                            
+    def _plausible_authorlist(self, body, indent=4):
+        '''get a plausible author list using indent number and 
+        align="right" '''
+        texts  = body.find_all('div', attrs={'style': True})
+        # get the indent of the text
+        sum_indent_padding = self._sum_indent_and_padding(texts)
+
+        # setting threshold: sum_indent_padding > indent for authors
+        author_list = [texts[i] for i,s in enumerate(sum_indent_padding) if s > indent]
+
+        if body.find('div', attrs={"align": True}):
+            author_list.append(body.find('div', attrs={"align": True}))
+        return author_list
+    
+    def _author_yield(self, author_text):
+        '''yield the first occurance of the NavigableString'''
+        for tag in author_text:
+            if isinstance(tag, bs4.element.NavigableString):
+                if not tag.isspace():
+                    yield tag
+
+    def _tag_yield(self, author_text, tag="font", attrs="size"):
+        '''yield  tag with a given attrs'''
+        for tag in author_text:
+            if isinstance(tag, bs4.element.Tag):
+                if "size" in tag.attrs:
+                    yield tag    
+            
+    def write_htmls(self, path='data/'):
+        try:
+            os.makedirs(path)
+        except OSError:
+            pass
+            
+        for i,soup in enumerate(self.flat_bodies):
+            filename = os.path.join(path, '{}_{}.html'.format(
+                self.bookname, str(i).zfill(4)))
+            with open(filename, 'w', encoding='utf-8') as file:
+                file.write(str(soup))
+                
+        # update the description
+        self.description += 'Writing data to {}.\n'.format(os.path.join(path, self.bookname + '*'))
+        
+    def load_htmls(self, path='data/'):
+        self.flat_bodies = []
+        i = 0
+        while 1:
+            filename = os.path.join(path, '{}_{}.html'.format(
+                self.bookname, str(i).zfill(4)))
+            if os.path.isfile(filename):
+                with open(filename, 'r', encoding='utf-8') as file:
+                    self.flat_bodies.append(BeautifulSoup(file.read(), 'lxml'))
+            else:
+                print("[Info] Stop at loading {}.".format(filename))
+                break
+            i += 1
+        print("[Info] Total length of the data is {}.".format(len(self.flat_bodies)))
+        
+        # update the description
+        self.description += 'Loading data from {}.\n'.format(path.format(os.path.join(path, self.bookname + '*')))
