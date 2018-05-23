@@ -1,4 +1,5 @@
 from collections import defaultdict
+### WHY "defaultdict", INSTEAD OF THE REGULAR "dict" FUNCTION?
 from bs4 import BeautifulSoup
 import bs4
 from urllib import request
@@ -14,27 +15,32 @@ class Book:
     """Han-Ji '<http://hanchi.ihp.sinica.edu.tw/ihp/hanji.htm>'_ Dataset.
     
     Attributes:
-        flat_bodies (list): a list contained all htmls 
-        flat_passages (list): a list contained all text of passages. Users sould define their own methods to organize the passages.
-        flat_heads (list): a list contained all text of heads. Users sould define their own methods to organize the heads.
-        flat_meta (list): a list contained all metadata(dictionary). User sould define their own methods to extract metadata.
-        paths (list): a list of paths extracted from bookmark. e.g., 集／總集／文選／卷第二十七　詩戊之一／樂府上／古樂府三首／飲馬長城窟行(P.1277)
-        author_bag (dict): a dictionary stores all authors name and their comments. The structure is like this: 
-        author_bag is a template that allow you to use for further applications such as extrac metadata, but it is not working well for every books. 
+        flat_bodies (list): a list containing all htmls 
+        flat_passages (list): a list containing the text of all passages (i.e., every individual piece in a book). Users should define their own methods to organize the passages.
+        flat_heads (list): a list containing all the text of the heads (i.e., the metadata at the top of each individual piece, like title and author). Users should define their own methods to organize the heads.
+        flat_meta (list): a list containing all metadata (dictionary). User sould define their own methods to extract metadata.
+        ### I AM CONFUSED ABOUT THIS ONE -- IS IT METADATA FROM THE BOOKMARKS?
+        paths (list): a list of paths extracted from the "bookmark" provided in the database. e.g., 集／總集／文選／卷第二十七　詩戊之一／樂府上／古樂府三首／飲馬長城窟行(P.1277)
+        author_bag (dict): a dictionary that stores all author names and any comments provided on the authors. The structure is like this:
+        ### IS THIS SPECIFIC TO WEN XUAN 文選?
+        Note: author_bag is a template that you can use for further applications, such as extracting metadata, but it is not working well for every book. 
         
     
     Args: 
         bookname (string): the name of the book, default = ''
-        date (string): the date of the book you scraped, default = None
-        creator (string): the name of the creator who create the instance
+        date (string): the date you collected the book, default = None
+        creator (string): the name of the creator who created the instance
+        ### DOES "CREATOR" MEAN THE PERSON RUNNING THE PROGRAM?
         description (string): optional description for the instance
         
     Methods:
         fetch_data(URL): fetch book bs4 obj from a start page URL of a Book in Han-Ji
         extract_paths(): extract paths from bookmark in self.flat_bodies list and append paths to self.paths
         get_author_bag(): extract paths from bookmark in self.flat_bodies list and append paths to self.paths
+        ### SAME DESCRIPTION FOR "get_author_bag" AND  “extract_paths" 
         write_htmls(path): write data into htmls on the disk in path
         load_htmls(path): load data from htmls on the disk in path
+        ### THESE TWO ARE ALSO A LITTLE UNCLEAR TO ME...
     """
     
     def __init__(self, bookname='', date=None, creator=None, description=''):
@@ -48,6 +54,7 @@ class Book:
         self.date        = date
         self.creator     = creator
         self.description = description
+        ### ?
         
     def __getitem__(self, index):
         '''
@@ -78,10 +85,11 @@ class Book:
         Args:
             URL (string): the start page url from han-ji website
             page_limit (int): the limit of next pages you can scrape. default = 1000
+            ### IS THIS DEFAULT TOO LOW?
             print_bookmark (bool): print the bookmark while fetching the data. default = False
         '''
         for i in range(pages_limit):            
-            # use urllib.request to get the html content of the web
+            # use urllib.request to get the html content of the website
             req  = request.Request(URL, headers={'User-Agent': 'Mozilla/5.0'})
             page = request.urlopen(req)
             soup = BeautifulSoup(page, 'lxml')
@@ -93,15 +101,17 @@ class Book:
             else:
                 print("[Info] Start fetching {}. {}/{} epoch.".format(URL, i + 1, pages_limit))            
             
-            # check if it is the same as previous page
+            # check if the content is the same as previous page
+            ### ?
             if i > 0:
                 buffer = self.flat_bodies[-1].find_all('div', attrs={'style': True})
             else:
-                # used a dummy list for the buffer for the first page
+                # use a dummy list for the buffer for the first page
                 buffer = ['dummy']
             
-            # if the 1st and last elemets in the buffer is the same as current page
+            # if the first and last elements in the buffer are the same as current page
             # delete page and save the current page.
+            ### GOOD SOLUTION, BUT ARE WE SURE THERE ARE NO HIDDEN TRAPS IN USING THIS RULE?  COULD TWO CONSECUTIVE BUT DIFFERENT POEMS HAVE THE SAME START AND END WORD?
             if (buffer[-1] == 
                 soup.find_all('div', attrs={'style': True})[-1]) and (
                 buffer[0] == 
@@ -122,27 +132,29 @@ class Book:
                 
             URL = urllib.parse.urljoin(BASE_URL, url)
             time.sleep(random.randint(1, 3))
+            ### GIVE IT 5 SECS, TO LOOK MORE HUMAN?
             
     def extract_paths(self):
-        '''extract paths from bookmark in self.flat_bodies list and append paths to self.paths'''
+        '''extracts paths from bookmark in self.flat_bodies list and append paths to self.paths'''
         for soup in self.flat_bodies:
-            # extract gobookmark
+            # extract "gobookmark" class
             path  = soup.find('a', attrs={'class', 'gobookmark'}).text
             self.paths.append(path)
     
     def get_author_bag(self, indent=4, name_length_limit=5):
-        '''gather a bag of authors (with comments) into a dict based on indents.
-        If indents + paddings are smaller than indent(default=4) and length of the name is smaller than name_length_limit(default=5), then consider it as an author name.
+        '''uses indents in the original webpage to gather a bag of authors (with any comments that may be attached to the authors).
+        If indents + paddings are smaller than indent(default=4) and the length of the name is smaller than name_length_limit(default=5), then consider it as an author name.
         '''
+        ### I DON'T GET THE LAST PART ("length of the name is smaller than name_length_limit(default=5)")
         buffer_author = None
         
         for i,soup in enumerate(self.flat_bodies):
-            # get the text body
+            # gets the text body
             body  = soup.find_all('span', {'id' : 'fontstyle'})[0]
             author_list = self._plausible_authorlist(body, indent)
             
             for author_text in author_list:
-                # one possible dangerous here is that next may not 
+                # one possible danger here is that next may not 
                 # be enough if there are multiple authors in one line
                 try:
                     author = next(iter(self._author_yield(author_text)))
@@ -171,7 +183,7 @@ class Book:
                 buffer_author = author
                 
     def _sum_indent_and_padding(self, texts):
-        '''Return the sum of indents and paddings in the texts.'''
+        '''returns the sum of indents and paddings in the texts.'''
         return [
             sum([int(num[0]), int(num[1])])
              for text in texts 
@@ -179,7 +191,7 @@ class Book:
         ]        
                             
     def _plausible_authorlist(self, body, indent=4):
-        '''get a plausible author list using indent number and 
+        '''gets a plausible author list using indent number and 
         align="right" '''
         texts  = body.find_all('div', attrs={'style': True})
         # get the indent of the text
@@ -193,14 +205,14 @@ class Book:
         return author_list
     
     def _author_yield(self, author_text):
-        '''yield the first occurance of the NavigableString'''
+        '''yields the first occurrence of the NavigableString'''
         for tag in author_text:
             if isinstance(tag, bs4.element.NavigableString):
                 if not tag.isspace():
                     yield tag
 
     def _tag_yield(self, author_text, tag="font", attrs="size"):
-        '''yield  tag with a given attrs'''
+        '''yields  tag with a given attrs'''
         for tag in author_text:
             if isinstance(tag, bs4.element.Tag):
                 if "size" in tag.attrs:
