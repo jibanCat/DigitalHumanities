@@ -3,10 +3,11 @@
 - The scraper function is defined as a method in the `Book` class. You can scrape the html files using
 
 ```python
+from Book
 # get a instance of Book class
 book = Book(bookname="name", date="2018-05-29", creator="MF)
 
-# get the htmls from the Han-Ji website
+# get the htmls from the Han-Ji website, The UR
 book.fetch_data('http://hanchi.ihp.sinica.edu.tw/ihpc/hanji?@30^1389784921^802^^^60311004001000010006@@460127924',
                 pages_limit=1000, print_bookmark=False,)
 ```
@@ -19,4 +20,29 @@ book.write_htmls(path="data")
 
 # loading files to book
 book.load_htmls(path="data")
+```
+
+- Exctract the bookmark (the dependencies of the poems) out of the page, just typed
+
+```python 
+book.extract_paths()
+```
+
+## WenShuan (文選) Organizer
+
+- The `WenShuan.py` was designed as a wrapper of the `Book.py` and have specific methods to organize the texts files in WenShuan
+
+```python 
+# get a instance out of WenShuan class
+wenshuan = WenShuan('2018-05-29', 'MF')
+book.fetch_data(URL="(URL for Han-Ji WenShuan)",
+                pages_limit=1000, print_bookmark=True,)
+
+# organize the text files 
+wenshuan.extract_paths()         # extract the bookmarks
+wenshuan.get_author_bag()        # get the bag of author names and comments
+wenshuan.extract_meta()          # extract the meta data
+wenshuan.passages2tuples()       # get the passsage into (text, comment) tuples
+wenshuan.heads2tuples()          # get headers into (head, comment, ...) tuples
+wenshuan.extract_commentators()  # append commentators to metadata
 ```
