@@ -20,7 +20,13 @@ class Book:
         flat_meta (list): a list contained all metadata(dictionary). User sould define their own methods to extract metadata.
         paths (list): a list of paths extracted from bookmark. e.g., 集／總集／文選／卷第二十七　詩戊之一／樂府上／古樂府三首／飲馬長城窟行(P.1277)
         author_bag (dict): a dictionary stores all authors name and their comments. The structure is like this: 
-        author_bag is a template that allow you to use for further applications such as extrac metadata, but it is not working well for every books. 
+            '丘希範': [(88,
+               <font size="-2">梁史曰：丘遲，字希範，吳興人。八歲能屬文，及長，辟徐州從事。高祖踐祚，拜中書郎，遷司徒</font>),
+              (88, <font size="-2">從事中郎。卒。集題曰：兼中書侍郎丘遲上。</font>),
+              (239, ''),
+              (490, '')], ...
+              numbers stands for the index in flat arrays.
+              author_bag is a template that allow you to use for further applications such as extrac metadata, but it is not working well for every books. 
         
     
     Args: 
@@ -125,6 +131,8 @@ class Book:
             
     def extract_paths(self):
         '''extract paths from bookmark in self.flat_bodies list and append paths to self.paths'''
+        self.paths = []
+        
         for soup in self.flat_bodies:
             # extract gobookmark
             path  = soup.find('a', attrs={'class', 'gobookmark'}).text

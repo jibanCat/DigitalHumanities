@@ -1,3 +1,15 @@
+from Book import Book 
+from collections import defaultdict
+from bs4 import BeautifulSoup
+import bs4
+from urllib import request
+import urllib
+import time
+import random
+import re
+import os
+import glob
+
 class WenShuan(Book):
     """WenShuan Dataset
     
@@ -16,6 +28,7 @@ class WenShuan(Book):
     
     def __init__(self, date, creator, description=''):
         Book.__init__(self, 'wenshuan', date, creator, description)
+        self.sound_glosses_bag = []
         
     def _path_author_name_yield(self, fifth_path_item):
         '''yield the author name in the path via checking if it is in the author_bag'''
@@ -196,3 +209,64 @@ class WenShuan(Book):
                 for comment in comment_list:
                     index, _ = comment
                     self.flat_meta[index]["commentator"] = author
+
+    def _punctuation_count(self, phrase, pun_bag = {"、","。", "，", "？", "：", "；", "「", "」"}):
+        '''Count num punctuactions in phrase based on a given pun_bag'''
+        return sum(phrase.count(p) for p in pun_bag)
+
+    def _backward_char_search(self, phrase, exclude = {" ", "、","。", "，", "？", "：", "；", "「", "」"}):
+        '''Return the frist char which is not in exclude.'''
+        for char in phrase[::-1]:
+            if char not in exclude:
+                return char
+            else: continue       
+                
+    def _sound_glosses_check(self, text, comment):
+        '''Check the comment is a sound glosses or not.
+        If it is a sound glosses, return (character reffered to, sound) as a tuple.'''
+        if  (self._punctuation_count(comment) < 2 and 
+            len(re.sub(r"[、。，？：；「」]", "", comment.replace(" ", ""))) < 4 and 
+            comment != ""):
+            return self._backward_char_search(text), re.sub(r"[、。，？：；「」]", "", comment)
+            
+        elif (self._punctuation_count(comment.split("。")[0]) == 0 and 
+            0 < len(comment.split("。")[0]) < 4):
+            return self._backward_char_search(text), comment.split("。")[0]
+        
+        else: return None
+        
+    def extract_sound_glosses(self, remove_sound_glosses=True):
+        self.sound_glosses_bag = []
+        new_flat_passages  = []
+
+        for i,passage in enumerate(self.flat_passages):
+            # A place to save sound glosses    
+            new_passage = []
+            p_preivous_buffer = ''
+
+            for j,(p,c) in enumerate(passage):
+                # check if c is a single phrase comment
+                sound_gloss = self._sound_glosses_check(p, c)
+
+                if sound_gloss != None:
+                    self.sound_glosses_bag.append((i,) + sound_gloss)
+                    p_preivous_buffer += p
+
+                    # CASE 2: Inline Sound Glosses
+                    if len(c) >= 5:
+                        if p_preivous_buffer[-1] != "。":
+                            p_preivous_buffer += "。"
+
+                    # CASE 1: Single Phrase
+                    elif re.search(r"(.+)([、。，？：；「」])", c) != None:
+                        match = re.search(r"(.+)([、。，？：；「」])", c)
+                        p_preivous_buffer += match.group(2)
+
+                else:
+                    new_passage.append((p_preivous_buffer + p, c))
+                    p_preivous_buffer = ''
+
+            new_flat_passages.append(new_passage)
+
+        if remove_sound_glosses:
+            self.flat_passages = new_flat_passages
