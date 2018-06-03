@@ -35,7 +35,7 @@ book.extract_paths()
 ```python 
 # get a instance out of WenShuan class
 wenshuan = WenShuan('2018-05-29', 'MF')
-book.fetch_data(URL="(URL for Han-Ji WenShuan)",
+wenshuan.fetch_data(URL="(URL for Han-Ji WenShuan)",
                 pages_limit=1000, print_bookmark=True,)
 
 # organize the text files 
@@ -45,4 +45,5 @@ wenshuan.extract_meta()          # extract the meta data
 wenshuan.passages2tuples()       # get the passsage into (text, comment) tuples
 wenshuan.heads2tuples()          # get headers into (head, comment, ...) tuples
 wenshuan.extract_commentators()  # append commentators to metadata
+wenshuan.extract_sound_glosses() # append all sound glosses in comments into a list and remove them from the self.flat_passages
 ```
