@@ -8,7 +8,7 @@ import time
 import random
 import re
 import os
-import glob
+import pandas as pd
 
 class WenShuan(Book):
     """WenShuan Dataset
@@ -73,8 +73,8 @@ class WenShuan(Book):
 
             # add values for keys
             meta['scroll'] = scroll
-            meta['poem']   = poem
-            meta['category'] = category
+            meta['category']   = poem
+            meta['genre'] = category
             meta['author'] = author
             meta['title']  = title
             self.flat_meta.append(meta)       
@@ -270,3 +270,24 @@ class WenShuan(Book):
 
         if remove_sound_glosses:
             self.flat_passages = new_flat_passages
+
+    def _writeECSV(self, filename, meta, df):
+        '''write a pandas.DataFrame into csv file with comments contain'''
+        with open(filename, 'w', encoding='utf-8') as file:
+            for key, value in meta.items():
+                file.write('# {} = {}\n'.format(key, value))
+            df.to_csv(file)
+
+    def write_passages_ECSV(self, path="文選/"):
+        '''writing passages into extend CSV format on the disk'''
+        try:
+            os.makedirs(path)
+        except OSError:
+            pass
+        
+        for i, (passage, meta) in enumerate( zip( self.flat_passages, self.flat_meta ) ):
+            # define the filename based on scroll and title
+            filename = os.path.join( path, '{}_Passage_{}_{}.csv'.format(i, meta['scroll'], meta['title'].replace('/', '-') ) )
+            
+            # write the csv files
+            self._writeECSV(filename, meta, pd.DataFrame( passage, columns=["passage_text", "passage_comment"]))        

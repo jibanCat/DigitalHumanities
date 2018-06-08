@@ -47,3 +47,8 @@ wenshuan.heads2tuples()          # get headers into (head, comment, ...) tuples
 wenshuan.extract_commentators()  # append commentators to metadata
 wenshuan.extract_sound_glosses() # append all sound glosses in comments into a list and remove them from the self.flat_passages
 ```
+- Writing to CSV: `Wenshuan.py` provides a method to write `wenshuan.flat_passages` and `wenshuan.flat_meta` to a series of CSV files in folder (default folder is `"/文選"`). Metadata is listed in the comments (`#`) in the headers. 
+
+```python
+wenshuan.write_passages_ECSV()
+```
