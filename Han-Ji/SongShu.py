@@ -10,8 +10,8 @@ import re
 import os
 import glob
 
-class ShongShu(Book):
-    """ShongShu Dataset
+class SongShu(Book):
+    """SongShu Dataset
     
     Attributes:
         author_bag
@@ -30,7 +30,7 @@ class ShongShu(Book):
 
     def extract_meta(self):
         self.flat_meta = []
-        for path in songshu.paths:
+        for path in self.paths:
             meta = {}
             bookmark_split = path.split('／')
 
