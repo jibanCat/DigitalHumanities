@@ -52,3 +52,19 @@ wenshuan.extract_sound_glosses() # append all sound glosses in comments into a l
 ```python
 wenshuan.write_passages_ECSV()
 ```
+
+## Rare Character Identifier
+
+Some characters in Han-Ji are rare chars. In this case, if we use `urllib` to parse the source page, we only get the fragments of the rare chars (構字形). 
+
+To resolve this situation, we can use JavaScript API in http://char.iis.sinica.edu.tw/ to acquire the fragments of chars, and then we can use the fragments to search the correct rare char unicodes. 
+
+The following lines show how to scrape the a bag of rare char unicodes from a text string:
+```python
+from rare_char_converter import rare_char_converter
+
+selenium_driver = "(PATH TO YOUR SELENIUM DRIVER)"
+text = "(YOUR HAN-JI TEXT)"
+rare_char_converter(text, selenium_driver)
+# Return: dict, {"(fragments of char)" : (UNICODE, string of the rare char)}
+```
