@@ -50,3 +50,19 @@ P(time \mid phrase) = \frac{ P(time) \prod{ P(feature_n \mid time)} }{ P(time) \
 $$
 
 > NOTE: 年號、數字、單位、季節 bags are copied from MARKUS, thanks MARKUS! 
+
+## Examples:
+```python
+from naive_bayes_time import calc_time_posterior
+
+calc_time_posterior("隆安三年十一月") 
+# 0.8873239436619719
+
+calc_time_posterior("張無忌帝一億年二十三月子丑") 
+# 0.4697469397630935
+
+calc_time_posterior("司馬大人是個人物，並不只是司馬大人是個人物") 
+# 0.002414582912800456
+```
+
+So, we are 89% certain that `"隆安三年十一月"` is a time phrase, 0.2% certain `"司馬大人是個人物，並不只是司馬大人是個人物"` is a time phrase, and 47% certain `"張無忌帝一億年二十三月子丑"` is a time phrase. In practice, Navie Bayes allow us to pay more attention on `"張無忌帝一億年二十三月子丑"` pharse to further justify whether it is a time phrase or not. 
