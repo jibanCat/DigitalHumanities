@@ -16,17 +16,13 @@ For example, consider the case to tag a time phrase:
 
 We can see there are some properties to identify in this phrase: 年號 (隆安), 數字 (三、十一), 單位 (年、月). For this phrase, we can calculate the posterior probability of the phase is a time phrase given this phrase
 
-$$
-P(time \mid phrase) = \frac{ P(phrase \mid time) \times P(time) }{ P(phrase) }
-$$
+$$P(time \mid phrase) = \frac{P(phrase \mid time) \times P(time) }{ P(phrase)}$$
 
 ### Naive Bayes assumption
 
 By Naive Bayes assumption, the likelehood $P(phrase \mid time)$ could be expressed a product of individual probability of each feature:
 
-$$
-P(phrase \mid time) = P(features \mid time) = P(feature_1 \mid time) \times ... \times P(feature_n \mid time) 
-$$
+$$P(phrase \mid time) = P(features \mid time) = P(feature_1 \mid time) \times ... \times P(feature_n \mid time)$$
 
 For a time phrase in a Chinese historian text, we could build a feature vector based on our experience:
 
@@ -40,17 +36,11 @@ the probs are given by the model in my brain. We could justify this model by col
 
 The normalization factor is following
 
-$$
-P(phrase) = P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}
-$$
+$$P(phrase) = P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}$$
 
 Therefore, Bayes rule give you the posterior:
 
-$$
-P(time \mid phrase) = \frac{P(time) \prod{ P(feature_n \mid time)}}{P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}}
-$$
-
-> NOTE: 年號、數字、單位、季節 bags are copied from MARKUS, thanks MARKUS! 
+$$P(time \mid phrase) = \frac{P(time) \prod{ P(feature_n \mid time)}}{P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}}$$
 
 ## Examples:
 ```python
@@ -67,3 +57,5 @@ calc_time_posterior("司馬大人是個人物，並不只是司馬大人是個�
 ```
 
 So, we are 89% certain that `"隆安三年十一月"` is a time phrase, 0.2% certain `"司馬大人是個人物，並不只是司馬大人是個人物"` is a time phrase, and 47% certain `"張無忌帝一億年二十三月子丑"` is a time phrase. In practice, Navie Bayes allow us to pay more attention to `"張無忌帝一億年二十三月子丑"` phrase to further justify whether it is a time phrase or not. 
+
+> NOTE: 年號、數字、單位、季節 bags are copied from MARKUS, thanks MARKUS! 
