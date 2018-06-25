@@ -1,4 +1,5 @@
-# Navie Bayes for Tagging
+
+# Naive Bayes for Tagging
 
 Having uncertainty is better than a point estimate. Assuming informative prior is better than giving a flat prior. As a (potential?) Bayesian, I believe "tagging," this standard pre-processing technique used in historian domain, could be expressed in a Bayesian way. 
 
@@ -13,7 +14,7 @@ For example, consider the case to tag a time phrase:
 "隆安三年十一月"
 ```
 
-We can see there are some properties to identify in this phrase: 年號 (隆安), 數字 (三、十一), 單位 (年、月). For this phrase, we can calculate the posterior probability of the phase being a time phrase given this phrase
+We can see there are some properties to identify in this phrase: 年號 (隆安), 數字 (三、十一), 單位 (年、月). For this phrase, we can calculate the posterior probability of the phase is a time phrase given this phrase
 
 $$
 P(time \mid phrase) = \frac{ P(phrase \mid time) \times P(time) }{ P(phrase) }
@@ -35,7 +36,7 @@ For a time phrase in a Chinese historian text, we could build a feature vector b
 | +       | 0.8  | 0.6 | 0.7 | 0.6 | 0.8 | 0.2 | 0.45      |
 | -       | 0.2  | 0.4 | 0.3 | 0.4 | 0.2 | 0.8 | 0.55      |
 
-the probs are given by the model in my brain 😆. We could justify this model by collection large enough of time phrases.
+the probs are given by the model in my brain. We could justify this model by collection large enough of time phrases.
 
 The normalization factor is following
 
@@ -44,8 +45,9 @@ P(phrase) = P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(featu
 $$
 
 Therefore, Bayes rule give you the posterior:
+
 $$
-P(time \mid phrase) = \frac{ P(time) \prod{ P(feature_n \mid time)} }{ P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)} }
+P(time \mid phrase) = \frac{P(time) \prod{ P(feature_n \mid time)}}{P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}}
 $$
 
 > NOTE: 年號、數字、單位、季節 bags are copied from MARKUS, thanks MARKUS! 
@@ -64,4 +66,4 @@ calc_time_posterior("司馬大人是個人物，並不只是司馬大人是個�
 # 0.002414582912800456
 ```
 
-So, we are 89% certain that `"隆安三年十一月"` is a time phrase, 0.2% certain `"司馬大人是個人物，並不只是司馬大人是個人物"` is a time phrase, and 47% certain `"張無忌帝一億年二十三月子丑"` is a time phrase. In practice, Navie Bayes allow us to pay more attention on `"張無忌帝一億年二十三月子丑"` pharse to further justify whether it is a time phrase or not. 
+So, we are 89% certain that `"隆安三年十一月"` is a time phrase, 0.2% certain `"司馬大人是個人物，並不只是司馬大人是個人物"` is a time phrase, and 47% certain `"張無忌帝一億年二十三月子丑"` is a time phrase. In practice, Navie Bayes allow us to pay more attention to `"張無忌帝一億年二十三月子丑"` phrase to further justify whether it is a time phrase or not. 
