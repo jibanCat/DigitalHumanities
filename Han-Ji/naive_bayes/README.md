@@ -1,5 +1,6 @@
-
 # Naive Bayes for Tagging
+
+> Hackmd page for this README https://hackmd.io/s/SkW-NSRZX
 
 Having uncertainty is better than a point estimate. Assuming informative prior is better than giving a flat prior. As a (potential?) Bayesian, I believe "tagging," this standard pre-processing technique used in historian domain, could be expressed in a Bayesian way. 
 
