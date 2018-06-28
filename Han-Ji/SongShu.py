@@ -14,9 +14,12 @@ class SongShu(Book):
     """SongShu Dataset
     
     Attributes:
-        author_bag
-        title_bag
-    
+        flat_meta : a list of bookmarks in SonShu extracted from Han-Ji
+        flat_passages : a list of ``passages`` in SongShu. 
+            Each ``passages`` contain a list of passage in a piece of work.
+            i.e., flat_passages = [passages1(list, passages2(list), ...]
+                  passages1 = [passage1(str), passage2(str), ...]    
+                  
     Args: same as Book class
     
     Methods:

@@ -53,6 +53,37 @@ wenshuan.extract_sound_glosses() # append all sound glosses in comments into a l
 wenshuan.write_passages_ECSV()
 ```
 
+
+## (Ongoing) SongShu (宋書) Organizer 
+
+- The `SongShu.py` was also designed as a wrapper of `Book.py` class. SongShu organizer separated every pieces of works into passages. 
+
+```python
+from SongShu import SongShu
+songshu = SongShu("2018-06-28", "MF")
+songshu.fetch_data(URL="(The first page URL of SongShu in Han-Ji)", pages_limit=2000, print_bookmark=True)
+songshu.write_htmls()
+```
+
+- To recover the fetched data we downloaded last time, run
+```python
+songshu = SongShu("2018-06-28", "MF")
+songshu.load_htmls()
+# [Info] Stop at loading data/ShongShu_0851.html.
+# [Info] Total length of the data is 851.
+```
+
+- To extract metadata, bookmarks, and organize the passages:
+```python
+# preprocessing the songshu data to get metadata and bookmarks
+# and separate the passages in every pages
+songshu.extract_paths()
+songshu.extract_meta()
+songshu.extract_passages()
+```  
+The <font color="#A60628">Warning</font> in the above output cell show that some pages in SonShu do not have a clear definition of **separating the passages**.
+
+
 ## Rare Character Identifier
 
 Some characters in Han-Ji are rare chars. In this case, if we use `urllib` to parse the source page, we only get the fragments of the rare chars (構字形). 
