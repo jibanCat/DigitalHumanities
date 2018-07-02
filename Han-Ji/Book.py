@@ -83,8 +83,22 @@ class Book:
             fmt_str += "\n{} authors and commentars.\n".format(len(self.author_bag))
         fmt_str += self.description
         return fmt_str
+
+    def _pretty_html(self, soup):
+        """cut off irrelevant content from the Han-Ji HTML source page"""
+        head = soup.find("head")
+        span_id_fontstyle = str(soup.find("span", {"id": "fontstyle"}))
+        path  = str(soup.find('a', attrs={'class', 'gobookmark'}))
+        HTML_string = """<html>
+                {}
+            <body>
+                {}
+            </body>
+        </html>
+        """.format(str(head), "{}\n\t{}".format(path, span_id_fontstyle))
+        return HTML_string
     
-    def fetch_data(self, URL, pages_limit=1000, print_bookmark=False,
+    def fetch_data(self, URL, pages_limit=1000, print_bookmark=False, html_cutoff=False,
                    BASE_URL='http://hanchi.ihp.sinica.edu.tw/ihpc/'):
         '''fetch book bs4 obj from a start page URL of a Book in Han-Ji
         
@@ -108,7 +122,7 @@ class Book:
                 print("[Info] Start fetching {}. {}/{} epoch.".format(URL, i + 1, pages_limit))            
             
             # check if the content is the same as previous page
-            ### ?
+            ### ? -> Response: this line is an ad-hoc solution for dealing with the first page while scraping. There must be a better way to do it.
             if i > 0:
                 buffer = self.flat_bodies[-1].find_all('div', attrs={'style': True})
             else:
@@ -118,15 +132,24 @@ class Book:
             # if the first and last elements in the buffer are the same as current page
             # delete page and save the current page.
             ### GOOD SOLUTION, BUT ARE WE SURE THERE ARE NO HIDDEN TRAPS IN USING THIS RULE?  COULD TWO CONSECUTIVE BUT DIFFERENT POEMS HAVE THE SAME START AND END WORD?
+            ### Response: the comparison here is for end and start sentences of a poem. 
+            ### It's quite unlikely two poems have the same start and end senetences, right?
             if (buffer[-1] == 
                 soup.find_all('div', attrs={'style': True})[-1]) and (
                 buffer[0] == 
                 soup.find_all('div', attrs={'style': True})[0]):
                 print("[Warning] This page is the same as the previous one, discard previous one and store the new one.")
-                self.flat_bodies[-1] = soup
+                if html_cutoff == True:
+                    self.flat_bodies[-1] = BeautifulSoup( self._pretty_html(soup), 'lxml' )
+                else:    
+                    self.flat_bodies[-1] = soup
             else:
-            # append to flat bodies
-               self.flat_bodies.append(soup)
+                # append to flat bodies
+                if html_cutoff==True:
+                    self.flat_bodies.append( BeautifulSoup( self._pretty_html(soup), 'lxml'))
+                else:
+                    self.flat_bodies.append(soup)
+               
             
             # find the next page
             next_page = soup.find('img', {'src' : '/ihp/snext.gif'})
@@ -138,7 +161,7 @@ class Book:
                 
             URL = urllib.parse.urljoin(BASE_URL, url)
             time.sleep(random.randint(1, 3))
-            ### GIVE IT 5 SECS, TO LOOK MORE HUMAN?
+            ### GIVE IT 5 SECS, TO LOOK MORE HUMAN? ### Maybe I can set it to an argument of this function
             
     def extract_paths(self):
         '''extract paths from bookmark in self.flat_bodies list and append paths to self.paths'''
@@ -226,7 +249,7 @@ class Book:
                 if "size" in tag.attrs:
                     yield tag    
             
-    def write_htmls(self, path='data/'):
+    def write_htmls(self, path='data/', html_cutoff=False):
         try:
             os.makedirs(path)
         except OSError:
@@ -236,7 +259,10 @@ class Book:
             filename = os.path.join(path, '{}_{}.html'.format(
                 self.bookname, str(i).zfill(4)))
             with open(filename, 'w', encoding='utf-8') as file:
-                file.write(str(soup))
+                if html_cutoff==True:
+                    file.write( self._pretty_html(soup) )
+                else:
+                    file.write(str(soup))
                 
         # update the description
         self.description += 'Writing data to {}.\n'.format(os.path.join(path, self.bookname + '*'))
