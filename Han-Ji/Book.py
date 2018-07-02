@@ -84,6 +84,11 @@ class Book:
         fmt_str += self.description
         return fmt_str
 
+    def pretty_print(self, index):
+        """pretty print the html source page in a Jupyter notebook cell output"""
+        from IPython.display import HTML
+        return HTML(self._pretty_html( self.flat_bodies[index] ))
+
     def _pretty_html(self, soup):
         """cut off irrelevant content from the Han-Ji HTML source page"""
         head = soup.find("head")
