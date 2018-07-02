@@ -271,6 +271,84 @@ class WenShuan(Book):
         if remove_sound_glosses:
             self.flat_passages = new_flat_passages
 
+    def get_author_bag(self, indent=4, name_length_limit=5):
+        '''uses indents in the original webpage to gather a bag of authors (with any comments that may be attached to the authors).
+        If indents + paddings are smaller than indent(default=4) and the length of the name is smaller than name_length_limit(default=5), then consider it as an author name.
+        '''
+        ### I DON'T GET THE LAST PART ("length of the name is smaller than name_length_limit(default=5)")
+        buffer_author = None
+        
+        for i,soup in enumerate(self.flat_bodies):
+            # gets the text body
+            body  = soup.find_all('span', {'id' : 'fontstyle'})[0]
+            author_list = self._plausible_authorlist(body, indent)
+            
+            for author_text in author_list:
+                # one possible danger here is that next may not 
+                # be enough if there are multiple authors in one line
+                try:
+                    author = next(iter(self._author_yield(author_text)))
+                except StopIteration:
+                    author = None
+                try:
+                    tag = next(iter(self._tag_yield(author_text)))
+                    if author is None:
+                        print("[Warning] No author name in {} item, but got a tag. Attach this tag to previous author name {}.".format(i, buffer_author))
+                        author = buffer_author 
+                except StopIteration:
+                    if author:
+                        tag = ''
+                        
+                if author:
+                    # check the length of the author name
+                    # split the name with space and check the mean of length
+                    author_split = author.split()
+                    if sum([len(x) for x in author_split]) / len(author_split) < name_length_limit:
+                        # add new key in the author_bag
+                        self.author_bag[author].append((i, tag))    
+                    else:
+                        print("[Warning] Author name, {} in {}, is too long. Discard this one.".format(author, i))
+                        continue
+                    
+                buffer_author = author
+                
+    def _sum_indent_and_padding(self, texts):
+        '''returns the sum of indents and paddings in the texts.'''
+        return [
+            sum([int(num[0]), int(num[1])])
+             for text in texts 
+             for num in re.findall(r'text-indent:(.*?)em;padding-left:(.*?)em;', text['style'])
+        ]        
+                            
+    def _plausible_authorlist(self, body, indent=4):
+        '''gets a plausible author list using indent number and 
+        align="right" '''
+        texts  = body.find_all('div', attrs={'style': True})
+        # get the indent of the text
+        sum_indent_padding = self._sum_indent_and_padding(texts)
+
+        # setting threshold: sum_indent_padding > indent for authors
+        author_list = [texts[i] for i,s in enumerate(sum_indent_padding) if s > indent]
+
+        if body.find('div', attrs={"align": True}):
+            author_list.append(body.find('div', attrs={"align": True}))
+        return author_list
+    
+    def _author_yield(self, author_text):
+        '''yields the first occurrence of the NavigableString'''
+        for tag in author_text:
+            if isinstance(tag, bs4.element.NavigableString):
+                if not tag.isspace():
+                    yield tag
+
+    def _tag_yield(self, author_text, tag="font", attrs="size"):
+        '''yields  tag with a given attrs'''
+        for tag in author_text:
+            if isinstance(tag, bs4.element.Tag):
+                if "size" in tag.attrs:
+                    yield tag    
+             
+
     def _writeECSV(self, filename, meta, df):
         '''write a pandas.DataFrame into csv file with comments contain'''
         with open(filename, 'w', encoding='utf-8') as file:
