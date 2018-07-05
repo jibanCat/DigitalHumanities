@@ -28,6 +28,12 @@ book.load_htmls(path="data")
 book.extract_paths()
 ```
 
+- To preview the first page of Han-Ji page in a pretty HTML format, type
+
+```python
+book.pretty_print(0) # 0 for the first page in scraped Han-Ji data
+```
+
 ## WenShuan (文選) Organizer
 
 - The `WenShuan.py` was designed as a wrapper of the `Book.py` and have specific methods to organize the texts files in WenShuan
