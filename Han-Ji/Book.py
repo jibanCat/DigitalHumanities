@@ -1,5 +1,6 @@
 from collections import defaultdict
 ### WHY "defaultdict", INSTEAD OF THE REGULAR "dict" FUNCTION?
+from datetime import datetime
 from bs4 import BeautifulSoup
 import bs4
 from urllib import request
@@ -57,7 +58,7 @@ class Book:
         self.paths = []
         self.author_bag = defaultdict(list)
         self.bookname    = bookname
-        self.date        = date
+        self.date        = datetime.strptime(date, '%Y-%m-%d')
         self.creator     = creator
         self.description = description
         ### ?
@@ -184,6 +185,14 @@ class Book:
              for text in texts 
              for num in re.findall(r'text-indent:(.*?)em;padding-left:(.*?)em;', text['style'])
         ]        
+        
+    def _indent_and_padding(self, texts):
+        '''Return the sum of indents and paddings in the texts.'''
+        return [
+            (int(num[0]), int(num[1]))
+             for text in texts 
+             for num in re.findall(r'text-indent:(.*?)em;padding-left:(.*?)em;', text['style'])
+        ]                    
                                         
     def write_htmls(self, path='data/', html_cutoff=False):
         try:
