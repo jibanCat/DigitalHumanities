@@ -15,10 +15,19 @@ class WenShuan(Book):
     
     Attributes:
         head_bag (dict): A dictionary store all heads in the WenShuan as keys and comments as values.
-    
+        author_bag (dict): a dictionary stores all authors name and their comments. The structure is like this: 
+            '丘希範': [(88,
+               <font size="-2">梁史曰：丘遲，字希範，吳興人。八歲能屬文，及長，辟徐州從事。高祖踐祚，拜中書郎，遷司徒</font>),
+              (88, <font size="-2">從事中郎。卒。集題曰：兼中書侍郎丘遲上。</font>),
+              (239, ''),
+              (490, '')], ...
+              numbers stands for the index in flat arrays.
+              author_bag is a template that allow you to use for further applications such as extrac metadata, but it is not working well for every books. 
+
     Args: same as Book class
     
     Methods:
+        get_author_bag(): Extract author names from align=right tags and compare with author names in the bookmarks
         extract_meta(): Extract meta data from self.paths. Index 3 in path for scroll, 4 for category, 5 for author name, after 5 for the title. The method would check the author name using author_bag automatically.
         passages2tuples(): Call _passages2TextCommentPairs to transform self.flat_bodies, to text comment pairs and store in self.flat_passages
         heads2tuples(): Convert heads in <h3> tags to (header, [comment, commnent, ...]) pairs.

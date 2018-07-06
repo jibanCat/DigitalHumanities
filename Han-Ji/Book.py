@@ -19,35 +19,20 @@ class Book:
         flat_bodies (list): a list containing all htmls 
         flat_passages (list): a list containing the text of all passages (i.e., every individual piece in a book). Users should define their own methods to organize the passages.
         flat_heads (list): a list containing all the text of the heads (i.e., the metadata at the top of each individual piece, like title and author). Users should define their own methods to organize the heads.
-        flat_meta (list): a list containing all metadata (dictionary). User sould define their own methods to extract metadata.
-        ### I AM CONFUSED ABOUT THIS ONE -- IS IT METADATA FROM THE BOOKMARKS?
+        flat_meta (list): a list containing all metadata (dictionary) extracted from bookmarks. User should define their own methods to extract metadata.
         paths (list): a list of paths extracted from the "bookmark" provided in the database. e.g., 集／總集／文選／卷第二十七　詩戊之一／樂府上／古樂府三首／飲馬長城窟行(P.1277)
-        author_bag (dict): a dictionary stores all authors name and their comments. The structure is like this: 
-            '丘希範': [(88,
-               <font size="-2">梁史曰：丘遲，字希範，吳興人。八歲能屬文，及長，辟徐州從事。高祖踐祚，拜中書郎，遷司徒</font>),
-              (88, <font size="-2">從事中郎。卒。集題曰：兼中書侍郎丘遲上。</font>),
-              (239, ''),
-              (490, '')], ...
-              numbers stands for the index in flat arrays.
-              author_bag is a template that allow you to use for further applications such as extrac metadata, but it is not working well for every books. 
-        ### IS THIS SPECIFIC TO WEN XUAN 文選?
-        ### Yeah... it seems to be sepecific to wenshuan.        
     
     Args: 
         bookname (string): the name of the book, default = ''
         date (string): the date you collected the book, default = None
         creator (string): the name of the creator who created the instance
-        ### DOES "CREATOR" MEAN THE PERSON RUNNING THE PROGRAM?
         description (string): optional description for the instance
         
     Methods:
         fetch_data(URL): fetch book bs4 obj from a start page URL of a Book in Han-Ji
         extract_paths(): extract paths from bookmark in self.flat_bodies list and append paths to self.paths
-        get_author_bag(): extract paths from bookmark in self.flat_bodies list and append paths to self.paths
-        ### SAME DESCRIPTION FOR "get_author_bag" AND  “extract_paths" 
         write_htmls(path): write data into htmls on the disk in path
         load_htmls(path): load data from htmls on the disk in path
-        ### THESE TWO ARE ALSO A LITTLE UNCLEAR TO ME...
     """
     
     def __init__(self, bookname='', date=None, creator=None, description=''):
@@ -91,7 +76,8 @@ class Book:
         return HTML(self._pretty_html( self.flat_bodies[index] ))
 
     def _pretty_html(self, soup):
-        """cut off irrelevant content from the Han-Ji HTML source page"""
+        """cut off irrelevant content, such as side columns in the webpage, from the Han-Ji HTML source page. 
+        This procedure aims to save memory for the computer."""
         head = soup.find("head")
         span_id_fontstyle = str(soup.find("span", {"id": "fontstyle"}))
         path  = str(soup.find('a', attrs={'class', 'gobookmark'}))
@@ -104,15 +90,16 @@ class Book:
         """.format(str(head), "{}\n\t{}".format(path, span_id_fontstyle))
         return HTML_string
     
-    def fetch_data(self, URL, pages_limit=1000, print_bookmark=False, html_cutoff=False,
-                   BASE_URL='http://hanchi.ihp.sinica.edu.tw/ihpc/'):
+    def fetch_data(self, URL, pages_limit=10000, print_bookmark=False, html_cutoff=False,
+                   BASE_URL='http://hanchi.ihp.sinica.edu.tw/ihpc/', sleep_range=(1, 3)):
         '''fetch book bs4 obj from a start page URL of a Book in Han-Ji
         
         Args:
             URL (string): the start page url from han-ji website
-            page_limit (int): the limit of next pages you can scrape. default = 1000
-            ### IS THIS DEFAULT TOO LOW?
+            page_limit (int): the limit of next pages you can scrape. default = 10000
             print_bookmark (bool): print the bookmark while fetching the data. default = False
+            html_cutoff (bool): cut off the irrelavant side column and tags in Han-Ji raw html files, 
+                                to save memory usage.
         '''
         for i in range(pages_limit):            
             # use urllib.request to get the html content of the website
@@ -166,8 +153,7 @@ class Book:
                 break
                 
             URL = urllib.parse.urljoin(BASE_URL, url)
-            time.sleep(random.randint(1, 3))
-            ### GIVE IT 5 SECS, TO LOOK MORE HUMAN? ### Maybe I can set it to an argument of this function
+            time.sleep(random.randint(sleep_range[0], sleep_range[1]))
             
     def extract_paths(self):
         '''extract paths from bookmark in self.flat_bodies list and append paths to self.paths'''
@@ -185,9 +171,9 @@ class Book:
              for text in texts 
              for num in re.findall(r'text-indent:(.*?)em;padding-left:(.*?)em;', text['style'])
         ]        
-        
+
     def _indent_and_padding(self, texts):
-        '''Return the sum of indents and paddings in the texts.'''
+        '''Return the indent and padding tuples of indents and paddings in the texts.'''
         return [
             (int(num[0]), int(num[1]))
              for text in texts 
@@ -195,6 +181,12 @@ class Book:
         ]                    
                                         
     def write_htmls(self, path='data/', html_cutoff=False):
+        '''writing all htmls in flat_bodies to the folder data/
+
+        Args:
+            path (str) : the path to the folder you want to write htmls files
+            html_cutoff (bool) : whether or not you want to cut off irrelevant contents in Han-Ji webpage 
+        '''
         try:
             os.makedirs(path)
         except OSError:
@@ -213,6 +205,8 @@ class Book:
         self.description += 'Writing data to {}.\n'.format(os.path.join(path, self.bookname + '*'))
         
     def load_htmls(self, path='data/'):
+        '''loading all files with filename = "bookname_*.html" in path data/
+        '''
         self.flat_bodies = []
         i = 0
         while 1:
