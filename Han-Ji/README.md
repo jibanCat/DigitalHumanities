@@ -3,7 +3,7 @@
 - The scraper function is defined as a method in the `Book` class. You can scrape the html files using
 
 ```python
-from Book
+from Book import Book
 # get a instance of Book class
 book = Book(bookname="name", date="2018-05-29", creator="MF)
 
@@ -39,6 +39,7 @@ book.pretty_print(0) # 0 for the first page in scraped Han-Ji data
 - The `WenShuan.py` was designed as a wrapper of the `Book.py` and have specific methods to organize the texts files in WenShuan
 
 ```python 
+from WenShuan import WenShuan
 # get a instance out of WenShuan class
 wenshuan = WenShuan('2018-05-29', 'MF')
 wenshuan.fetch_data(URL="(URL for Han-Ji WenShuan)",
