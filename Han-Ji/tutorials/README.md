@@ -10,6 +10,7 @@
 4. [`WenShuan -- Rare Char Identify Using Selenium.ipynb`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/WenXuan%20--%20Rare%20Char%20Identify%20Using%20Selenium.ipynb): Identify the rare characters in WenShuan using rare chars search in sinica.
 5. [`SongShu -- Place Names Export (Part 1).ipynb`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/SongShu%20--%20Place%20Names%20Export%20%28Part%201%29.ipynb): How to use Songshu class and simplest regex to match all place names in the SongShu class.
 6. [`SongShu -- Place Names Export (Part 2).ipynb`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/SongShu%20--%20Place%20Names%20Export%20%28Part%202%29.ipynb): Export place names to `csv`s and data viz the frequency of characters associated with place names.
+7. [`WenXuan -- Rare Char Replacement Function`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/WenXuan%20--%20Rare%20Char%20Replacement%20Function.ipynb): Updating rare chars in WenXuan with corresponding unicodes using Sinica Normalization API.
 
 ## Supplementary
 
