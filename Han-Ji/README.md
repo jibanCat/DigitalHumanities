@@ -24,7 +24,7 @@ book.load_htmls(path="data")
 
 - Exctract the bookmark (the dependencies of the poems) out of the page, just typed
 
-```python 
+```python
 book.extract_paths()
 ```
 
@@ -34,18 +34,35 @@ book.extract_paths()
 book.pretty_print(0) # 0 for the first page in scraped Han-Ji data
 ```
 
+- To convert rare char components (構字形) in `book.flat_bodies` html sources, type
+
+```python
+# if the {name}_rare_char.json exist in your path
+book.update_rare_chars()
+```
+
+otherwise
+
+```python
+# if the {name}_rare_char.json does not exist
+driver_path = '(PATH to your selenium driver)'
+book.extract_rare_chars(driver_path) # this line would take a very long time, be careful before you execute it
+book.write_rare_chars() # write to name_rare_char.json
+book.update_rare_chars()
+```
+
 ## WenShuan (文選) Organizer
 
 - The `WenShuan.py` was designed as a wrapper of the `Book.py` and have specific methods to organize the texts files in WenShuan
 
-```python 
+```python
 from WenShuan import WenShuan
 # get a instance out of WenShuan class
 wenshuan = WenShuan('2018-05-29', 'MF')
 wenshuan.fetch_data(URL="(URL for Han-Ji WenShuan)",
                 pages_limit=1000, print_bookmark=True,)
 
-# organize the text files 
+# organize the text files
 wenshuan.extract_paths()         # extract the bookmarks
 wenshuan.get_author_bag()        # get the bag of author names and comments
 wenshuan.extract_meta()          # extract the meta data
@@ -54,7 +71,8 @@ wenshuan.heads2tuples()          # get headers into (head, comment, ...) tuples
 wenshuan.extract_commentators()  # append commentators to metadata
 wenshuan.extract_sound_glosses() # append all sound glosses in comments into a list and remove them from the self.flat_passages
 ```
-- Writing to CSV: `Wenshuan.py` provides a method to write `wenshuan.flat_passages` and `wenshuan.flat_meta` to a series of CSV files in folder (default folder is `"/文選"`). Metadata is listed in the comments (`#`) in the headers. 
+
+- Writing to CSV: `Wenshuan.py` provides a method to write `wenshuan.flat_passages` and `wenshuan.flat_meta` to a series of CSV files in folder (default folder is `"/文選"`). Metadata is listed in the comments (`#`) in the headers.
 
 ```python
 wenshuan.write_passages_ECSV()
@@ -73,6 +91,7 @@ songshu.write_htmls()
 ```
 
 - To recover the fetched data we downloaded last time, run
+
 ```python
 songshu = SongShu("2018-06-28", "MF")
 songshu.load_htmls()
@@ -81,6 +100,7 @@ songshu.load_htmls()
 ```
 
 - To extract metadata, bookmarks, and organize the passages:
+
 ```python
 # preprocessing the songshu data to get metadata and bookmarks
 # and separate the passages in every pages
@@ -88,16 +108,17 @@ songshu.extract_paths()
 songshu.extract_meta()
 songshu.extract_passages()
 ```  
-The <font color="#A60628">Warning</font> in the above output cell show that some pages in SonShu do not have a clear definition of **separating the passages**.
 
+The <font color="#A60628">Warning</font> in the above output cell show that some pages in SonShu do not have a clear definition of **separating the passages**.
 
 ## Rare Character Identifier
 
 Some characters in Han-Ji are rare chars. In this case, if we use `urllib` to parse the source page, we only get the fragments of the rare chars (構字形). 
 
-To resolve this situation, we can use JavaScript API in http://char.iis.sinica.edu.tw/ to acquire the fragments of chars, and then we can use the fragments to search the correct rare char unicodes. 
+To resolve this situation, we can use JavaScript API in http://char.iis.sinica.edu.tw/API/normalization.htm to acquire the fragments of chars, and then we can use the fragments to search the correct rare char unicodes. 
 
 The following lines show how to scrape the a bag of rare char unicodes from a text string:
+
 ```python
 from rare_char_converter import rare_char_converter
 

@@ -57,7 +57,10 @@ def normalization_sinica_search(key, url = "http://char.iis.sinica.edu.tw/API/")
         soup = BeautifulSoup(req.text, 'html5lib')
 
     UNICODE = soup.find("unicode").text
-    return UNICODE, chr(int(UNICODE.lower(), 16))
+    try:
+        return UNICODE, chr(int(UNICODE.lower(), 16))
+    except ValueError as e:
+        print("[Error] {}, no such search result for {}".format(e, key))
 
 def rare_char_converter(text, driver_path, normalization=True):
     """
@@ -104,6 +107,8 @@ def rare_char_converter(text, driver_path, normalization=True):
             char["alt"] : normalization_sinica_search(char['alt'])
             for char in soup.find_all("img")
         }
+        bag_of_rare_char_unicode = {key: value for key,value in bag_of_rare_char_unicode.items()
+                           if value != None}
 
     else:
         bag_of_rare_char_unicode = {

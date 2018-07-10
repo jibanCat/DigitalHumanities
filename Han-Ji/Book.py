@@ -179,7 +179,69 @@ class Book:
              for text in texts 
              for num in re.findall(r'text-indent:(.*?)em;padding-left:(.*?)em;', text['style'])
         ]                    
-                                        
+
+    def extract_rare_chars(self, driver_path, normalization=True):
+        """Extract rare char in every passages. Note that this function would run for a long time.
+        
+        Args: 
+            driver_path (str) : the path to your selenium driver
+            normalization (bool) : whether or not using normalization API in academia sinica, default = True.
+        
+        Updated:
+            self.flat_rare_bag (list) : {"(components of rare chars)" : ("(UNICODE)", "(UTF-8)"), ...}
+        
+        After running this funciton, run 
+        >> self.write_rare_chars() 
+        to write a json.
+        
+        Therefore, you could just run 
+        >> self.update_rare_char()
+        to update rare char in the next time without extracting rare char from web again.
+        """
+        from rare_char_converter import rare_char_converter
+        
+        self.flat_rare_chars = []
+        for body in self.flat_bodies:
+            while 1:
+                try: 
+                    time.sleep(random.randint(2, 5))
+                    text = body.find("span", {"id":"fontstyle"}).text
+                    rare_char_bag = rare_char_converter(text, driver_path, normalization=True)
+                    self.flat_rare_chars.append(rare_char_bag)
+                    break
+                except (TimeoutError, ConnectionResetError, urllib.error.URLError) as e:
+                    print("[Warning] {}, wait for 10 secs.".format(e))
+                    time.sleep(10)    
+
+    def write_rare_chars(self):
+        import json
+        with open("{}_rare_char.json".format(self.bookname), "w", encoding="utf-8") as file:
+            json.dump(self.flat_rare_chars, file)
+
+
+    def update_rare_chars(self):
+        """Replace rare char based on `{bookname}_rare_char.json`"""
+        import json
+
+        try:
+            with open("{}_rare_char.json".format(self.bookname), "r", encoding="utf-8") as file:
+                self.flat_rare_chars = json.load(file)
+
+            flat_htmls = []
+            for soup,rare_char in zip(self.flat_bodies, self.flat_rare_chars):
+                html = str(soup)
+                for components,(UICODE, char) in rare_char.items(): 
+                    html = re.sub(components, char, html)
+                flat_htmls.append(BeautifulSoup(html, "lxml"))
+
+            self.flat_bodies = flat_htmls        
+
+        except FileNotFoundError as e:
+            print("[Error] {}_rare_char.json does not exist".format(self.bookname))
+            print("""\ttry to run these lines: 
+            \t>> self.extract_rare_chars()
+            \t>> self.write_rare_chars()\n""")
+
     def write_htmls(self, path='data/', html_cutoff=False):
         '''writing all htmls in flat_bodies to the folder data/
 
