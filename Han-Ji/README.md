@@ -80,7 +80,7 @@ wenxuan.write_passages_ECSV()
 
 ## (Ongoing) SongShu (宋書) Organizer
 
-- The `SongShu.py` was also designed as a wrapper of `Book.py` class. SongShu organizer separated every pieces of works into passages.
+- The `SongShu.py` was also designed as a wrapper of `Book.py` class. SongShu organizer separated every pieces of works into passages.
 
 ```python
 from SongShu import SongShu
