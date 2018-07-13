@@ -72,7 +72,7 @@ wenxuan.extract_commentators()  # append commentators to metadata
 wenxuan.extract_sound_glosses() # append all sound glosses in comments into a list and remove them from the self.flat_passages
 ```
 
-- Writing to CSV: `Wenshuan.py` provides a method to write `wenxuan.flat_passages` and `wenxuan.flat_meta` to a series of CSV files in folder (default folder is `"/文選"`). Metadata is listed in the comments (`#`) in the headers.
+- Writing to CSV: `WenXuan.py` provides a method to write `wenxuan.flat_passages` and `wenxuan.flat_meta` to a series of CSV files in folder (default folder is `"/文選"`). Metadata is listed in the comments (`#`) in the headers.
 
 ```python
 wenxuan.write_passages_ECSV()
