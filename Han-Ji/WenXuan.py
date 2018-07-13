@@ -10,11 +10,11 @@ import re
 import os
 import pandas as pd
 
-class WenShuan(Book):
-    """WenShuan Dataset
+class WenXuan(Book):
+    """WenXuan Dataset
     
     Attributes:
-        head_bag (dict): A dictionary store all heads in the WenShuan as keys and comments as values.
+        head_bag (dict): A dictionary store all heads in the WenXuan as keys and comments as values.
         author_bag (dict): a dictionary stores all authors name and their comments. The structure is like this: 
             '丘希範': [(88,
                <font size="-2">梁史曰：丘遲，字希範，吳興人。八歲能屬文，及長，辟徐州從事。高祖踐祚，拜中書郎，遷司徒</font>),
@@ -36,7 +36,7 @@ class WenShuan(Book):
     """
     
     def __init__(self, date, creator, description=''):
-        Book.__init__(self, 'wenshuan', date, creator, description)
+        Book.__init__(self, 'wenxuan', date, creator, description)
         self.sound_glosses_bag = []
         
     def _path_author_name_yield(self, fifth_path_item):
@@ -111,7 +111,7 @@ class WenShuan(Book):
         mean_num_pairs = sum(
             [len(tcpairs) for tcpairs in self.flat_passages]
         ) / len(self.flat_passages)
-        self.description += "Got text comment pairs for WenShuan with mean of the pairs for each passage is {}.\n".format(mean_num_pairs)
+        self.description += "Got text comment pairs for WenXuan with mean of the pairs for each passage is {}.\n".format(mean_num_pairs)
 
     def _passages2TextCommentPairs(self, texts, comment_attr='size'):
         '''

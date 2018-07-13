@@ -51,37 +51,36 @@ book.write_rare_chars() # write to name_rare_char.json
 book.update_rare_chars()
 ```
 
-## WenShuan (文選) Organizer
+## WenXuan (文選) Organizer
 
-- The `WenShuan.py` was designed as a wrapper of the `Book.py` and have specific methods to organize the texts files in WenShuan
+- The `WenXuan.py` was designed as a wrapper of the `Book.py` and have specific methods to organize the texts files in WenXuan
 
 ```python
-from WenShuan import WenShuan
-# get a instance out of WenShuan class
-wenshuan = WenShuan('2018-05-29', 'MF')
-wenshuan.fetch_data(URL="(URL for Han-Ji WenShuan)",
+from WenXuan import WenXuan
+# get a instance out of WenXuan class
+wenxuan = WenXuan('2018-05-29', 'MF')
+wenxuan.fetch_data(URL="(URL for Han-Ji WenXuan)",
                 pages_limit=1000, print_bookmark=True,)
 
 # organize the text files
-wenshuan.extract_paths()         # extract the bookmarks
-wenshuan.get_author_bag()        # get the bag of author names and comments
-wenshuan.extract_meta()          # extract the meta data
-wenshuan.passages2tuples()       # get the passsage into (text, comment) tuples
-wenshuan.heads2tuples()          # get headers into (head, comment, ...) tuples
-wenshuan.extract_commentators()  # append commentators to metadata
-wenshuan.extract_sound_glosses() # append all sound glosses in comments into a list and remove them from the self.flat_passages
+wenxuan.extract_paths()         # extract the bookmarks
+wenxuan.get_author_bag()        # get the bag of author names and comments
+wenxuan.extract_meta()          # extract the meta data
+wenxuan.passages2tuples()       # get the passsage into (text, comment) tuples
+wenxuan.heads2tuples()          # get headers into (head, comment, ...) tuples
+wenxuan.extract_commentators()  # append commentators to metadata
+wenxuan.extract_sound_glosses() # append all sound glosses in comments into a list and remove them from the self.flat_passages
 ```
 
-- Writing to CSV: `Wenshuan.py` provides a method to write `wenshuan.flat_passages` and `wenshuan.flat_meta` to a series of CSV files in folder (default folder is `"/文選"`). Metadata is listed in the comments (`#`) in the headers.
+- Writing to CSV: `Wenshuan.py` provides a method to write `wenxuan.flat_passages` and `wenxuan.flat_meta` to a series of CSV files in folder (default folder is `"/文選"`). Metadata is listed in the comments (`#`) in the headers.
 
 ```python
-wenshuan.write_passages_ECSV()
+wenxuan.write_passages_ECSV()
 ```
 
+## (Ongoing) SongShu (宋書) Organizer
 
-## (Ongoing) SongShu (宋書) Organizer 
-
-- The `SongShu.py` was also designed as a wrapper of `Book.py` class. SongShu organizer separated every pieces of works into passages. 
+- The `SongShu.py` was also designed as a wrapper of `Book.py` class. SongShu organizer separated every pieces of works into passages.
 
 ```python
 from SongShu import SongShu
