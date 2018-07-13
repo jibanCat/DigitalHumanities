@@ -37,13 +37,18 @@ the probs are given by the model in my brain. We could justify this model by col
 
 The normalization factor is following
 
-$$P(phrase) = P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}$$
+$$
+P(phrase) = P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}
+$$
 
 Therefore, Bayes rule give you the posterior:
 
-$$P(time \mid phrase) = \frac{P(time) \prod{ P(feature_n \mid time)}}{P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}}$$
+$$
+P(time \mid phrase) = \frac{P(time) \prod{ P(feature_n \mid time)}}{P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}}
+$$
 
 ## Examples:
+
 ```python
 from naive_bayes_time import calc_time_posterior
 
@@ -57,6 +62,10 @@ calc_time_posterior("司馬大人是個人物，並不只是司馬大人是個�
 # 0.002414582912800456
 ```
 
-So, we are 89% certain that `"隆安三年十一月"` is a time phrase, 0.2% certain `"司馬大人是個人物，並不只是司馬大人是個人物"` is a time phrase, and 47% certain `"張無忌帝一億年二十三月子丑"` is a time phrase. In practice, Navie Bayes allow us to pay more attention to `"張無忌帝一億年二十三月子丑"` phrase to further justify whether it is a time phrase or not. 
+So, we are 89% certain that `"隆安三年十一月"` is a time phrase, 0.2% certain `"司馬大人是個人物，並不只是司馬大人是個人物"` is a time phrase, and 47% certain `"張無忌帝一億年二十三月子丑"` is a time phrase. In practice, Navie Bayes allow us to pay more attention to `"張無忌帝一億年二十三月子丑"` phrase to further justify whether it is a time phrase or not.
 
-> NOTE: 年號、數字、單位、季節 bags are copied from MARKUS, thanks MARKUS! 
+> NOTE: 年號、數字、單位、季節 bags are copied from MARKUS, thanks MARKUS!
+
+## Resources
+
+- Story about Thmoas Bayes: https://www.the-tls.co.uk/articles/public/thomas-bayes-science-crisis/
