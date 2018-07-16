@@ -68,4 +68,4 @@ So, we are 89% certain that `"隆安三年十一月"` is a time phrase, 0.2% cer
 
 ## Resources
 
-- Story about Thmoas Bayes: https://www.the-tls.co.uk/articles/public/thomas-bayes-science-crisis/
+- [Story about Thmoas Bayes](https://www.the-tls.co.uk/articles/public/thomas-bayes-science-crisis/)
