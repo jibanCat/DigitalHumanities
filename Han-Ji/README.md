@@ -1,6 +1,6 @@
-# Han-Ji (漢籍) Scraper
+# Han-Ji (漢籍) Fetcher
 
-- The scraper function is defined as a method in the `Book` class. You can scrape the html files using
+- The fetcher function is defined as a method in the `Book` class. You can fetch the html files using
 
 ```python
 from Book import Book
@@ -31,7 +31,7 @@ book.extract_paths()
 - To preview the first page of Han-Ji page in a pretty HTML format, type
 
 ```python
-book.pretty_print(0) # 0 for the first page in scraped Han-Ji data
+book.pretty_print(0) # 0 for the first page in fetched Han-Ji data
 ```
 
 - To convert rare char components (構字形) in `book.flat_bodies` html sources, type
@@ -116,7 +116,7 @@ Some characters in Han-Ji are rare chars. In this case, if we use `urllib` to pa
 
 To resolve this situation, we can use JavaScript API in http://char.iis.sinica.edu.tw/API/normalization.htm to acquire the fragments of chars, and then we can use the fragments to search the correct rare char unicodes. 
 
-The following lines show how to scrape the a bag of rare char unicodes from a text string:
+The following lines show how to fetch the a bag of rare char unicodes from a text string:
 
 ```python
 from rare_char_converter import rare_char_converter
