@@ -358,6 +358,13 @@ class WenXuan(Book):
                     yield tag    
              
 
+    def passage_generator(self):
+        '''(WenXuan) iterate over every passage regardless the hierarchical structure'''
+        for passages in self.flat_passages:
+            for pair in passages:
+                for x in pair:
+                    yield x
+
     def _writeECSV(self, filename, meta, df):
         '''write a pandas.DataFrame into csv file with comments contain'''
         with open(filename, 'w', encoding='utf-8') as file:

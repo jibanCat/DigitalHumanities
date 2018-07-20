@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 ### WHY "defaultdict", INSTEAD OF THE REGULAR "dict" FUNCTION?
 from datetime import datetime
 from bs4 import BeautifulSoup
@@ -33,6 +33,10 @@ class Book:
         extract_paths(): extract paths from bookmark in self.flat_bodies list and append paths to self.paths
         write_htmls(path): write data into htmls on the disk in path
         load_htmls(path): load data from htmls on the disk in path
+        char_word_counts(char, limits=(1,4)): count the number of occurances of the phrase attach with a certain character
+        extract_rare_chars(driver_path, normalization=True): extract rare char in every passages. Note that this function would run for a long time.
+        write_rare_chars(): writing self.flat_rare_chars to `{bookname}_rare_char.json`
+        update_rare_chars(): replace rare char based on `{bookname}_rare_char.json`
     """
     
     def __init__(self, bookname='', date=None, creator=None, description=''):
@@ -241,6 +245,35 @@ class Book:
             print("""\ttry to run these lines: 
             \t>> self.extract_rare_chars()
             \t>> self.write_rare_chars()\n""")
+
+    def _regexf(self, char, num):
+        return r"[^、。，？！：；「」〔〕『』]{" + str(num) + "}" + char
+
+    def passage_generator(self):
+        '''iterate over every passage regardless the hierarchical structure'''
+        for passages in self.flat_passages:
+            for p in passages:
+                yield p
+
+    def char_word_counts(self, char, limits=(1, 4)):
+        '''
+        Count the number of occurances of the phrase attach with a certain character
+        
+        Args:
+            char (str): the character you want to set as the last character in the phrase.
+            limits (tuple): lower and upper limit for the characters before the `char`.
+
+        Yield:
+            collections.Counter object
+        '''
+        return Counter(list(self._word_generator(char, limits)))
+
+    def _word_generator(self, char, limits):
+        lower, upper = limits
+        for p in self.passage_generator():
+            for i in range(lower, upper):
+                for match in re.finditer(self._regexf(char, i), p):
+                    yield match.group(0)
 
     def write_htmls(self, path='data/', html_cutoff=False):
         '''writing all htmls in flat_bodies to the folder data/

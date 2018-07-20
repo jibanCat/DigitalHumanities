@@ -51,6 +51,17 @@ book.write_rare_chars() # write to name_rare_char.json
 book.update_rare_chars()
 ```
 
+- To count the occurances of the phrase attached with a certain character, use `book.char_word_counts`. See _`SongShu` Organizer_ for futher details.  
+
+```python
+# list the 5 most common words with the last character == `char`,  
+# consider phrase with length 2 to 6.
+# char should be a string
+book.char_word_counts(char, limits=(1, 5)).most_common(5)
+```
+
+Note: before using `char_word_counts` method, make sure you already extraced passages to `book.flat_passages`.
+
 ## WenXuan (文選) Organizer
 
 - The `WenXuan.py` was designed as a wrapper of the `Book.py` and have specific methods to organize the texts files in WenXuan
@@ -76,6 +87,13 @@ wenxuan.extract_sound_glosses() # append all sound glosses in comments into a li
 
 ```python
 wenxuan.write_passages_ECSV()
+```
+
+- To count the occurances of the phrase attached with a certain character, e.g., '曰':
+
+```python
+wenxuan.char_word_counts('曰', limits=(1, 4)).most_common(5)
+# [('子曰', 3517), ('書曰', 3495), ('詩曰', 2843), ('善曰', 2029), ('注曰', 2018)]
 ```
 
 ## (Ongoing) SongShu (宋書) Organizer
@@ -109,6 +127,15 @@ songshu.extract_passages()
 ```  
 
 The <font color="#A60628">Warning</font> in the above output cell show that some pages in SonShu do not have a clear definition of **separating the passages**.
+
+- To count the occurances of the phrase attached with a certain character, e.g., '洲':
+
+```python
+songshu.char_word_counts('洲', limits=(1, 5)).most_common(5)
+# [('蔡洲', 14), ('鬱洲', 9), ('嶸洲', 6), ('崢嶸洲', 6), ('至蔡洲', 6)]
+```
+
+In this way, it is possible to extract natural geographical names.
 
 ## Rare Character Identifier
 
