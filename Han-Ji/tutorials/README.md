@@ -12,6 +12,8 @@
 6. [`SongShu -- Place Names Export (Part 2).ipynb`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/SongShu%20--%20Place%20Names%20Export%20%28Part%202%29.ipynb): Export place names to `csv`s and data viz the frequency of characters associated with place names.
 7. [`WenXuan -- Rare Char Replacement Function`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/WenXuan%20--%20Rare%20Char%20Replacement%20Function.ipynb): Updating rare chars in WenXuan with corresponding unicodes using Sinica Normalization API.
 
+8. [`SongShu -- Export Natural Geo-Names (洲、山 as an example)`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/SongShu%20--%20Export%20Natural%20Geo-Names%20%28%E6%B4%B2%E3%80%81%E5%B1%B1%20as%20an%20example%29.ipynb): Searching geo-names using word counts.
+
 ## Supplementary
 
 1. [`Skip Certain Kind of Tags in BS4 Object.ipynb`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/Skip%20Certain%20Kind%20of%20Tags%20in%20BS4%20Object.ipynb): How to delete some html tags from the `bs4` tree structure.
