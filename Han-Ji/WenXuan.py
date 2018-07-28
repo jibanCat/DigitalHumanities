@@ -95,6 +95,8 @@ class WenXuan(Book):
     def passages2tuples(self, indent=4):
         '''Call _passages2TextCommentPairs to transform self.flat_bodies, 
         to text comment pairs and store in self.flat_passages'''
+        self.flat_passages = []
+        
         for body in self.flat_bodies:
             texts  = body.find_all('div', attrs={'style': True})
 
@@ -229,7 +231,10 @@ class WenXuan(Book):
             if char not in exclude:
                 return char
             else: continue       
-                
+
+    """
+    Figure out a way to do in Bayesian way, to give a prob of sound glosses correctness
+    """                
     def _sound_glosses_check(self, text, comment):
         '''Check the comment is a sound glosses or not.
         If it is a sound glosses, return (character reffered to, sound) as a tuple.'''
