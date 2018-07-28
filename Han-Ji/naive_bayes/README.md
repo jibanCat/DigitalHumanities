@@ -66,6 +66,41 @@ So, we are 89% certain that `"隆安三年十一月"` is a time phrase, 0.2% cer
 
 > NOTE: 年號、數字、單位、季節 bags are copied from MARKUS, thanks MARKUS!
 
+## Tag a Place Name (Table)
+
+| is place | 地名 | 方向 | 城鎮 | 單位 | 數字 |  年號   | 經驗字 |
+| ----    | ---  | --- | --- | --- | --- | ---      | --- |
+| +       | 0.8  | 0.75 | 0.7 | 0.2 | 0.2 | 0.3     | 0.4 | 
+| -       | 0.2  | 0.25 | 0.3 | 0.8 | 0.8 | 0.7     | 0.6 | 
+
+## Naive Class for Single Phrase
+
+```python
+from Naive import NaiveBayes
+
+names = ['年號', '數字', '單位', '季節', '干支'] # name of features
+iterables = [['清寧', '大業', '太平', '中興', ...], '是元正𨳝一二三四五六七八九十廿卅', '年載月日初中末閏', '春夏秋冬', ['乙卯', '壬辰', '乙亥', '己亥', '戊午', '丙午', '丙寅', '癸酉', '庚辰', '乙丑', '癸亥', '己卯', '己巳', '丁卯', '辛亥', '丙辰', '己未', '戊申', '壬子', '癸丑', '丙子', '戊寅', '辛卯', '辛未', '丁未', '丁亥', '庚子', '壬寅', '庚寅', '甲申', '辛丑', '乙酉', '己酉', '乙未', '甲辰', '戊子', '丁酉', '甲戌', '丙申', '庚戌', '己丑', '丁巳', '癸卯', '癸巳', '甲午', '庚申', '癸未', '乙巳', '壬午', '壬戌', '庚午', '甲子', '辛酉', '辛巳', '丁丑', '丙戌', '戊戌', '甲寅', '戊辰', '壬申']] # all possible examples of features
+likelihoods = [0.8, 0.6, 0.7, 0.6, 0.8] # Assign by hand
+naive = NaiveBayes(names, iterables, likelihoods, prior=0.3)
+```
+
+or
+
+```python
+from Naive import NaiveBayes
+
+naive = NaiveBayes(filename=filename_of_definition_json, prior=0.3)
+```
+
+- calc the prob of a phrase beinging a time phrase
+
+```python
+naive.calc_posterior('興寧三年')
+# 0.8571428571428572
+```
+
+- Still working on: fit a bunch of training data to get the likelihood and iterables.
+
 ## Resources
 
 - [Story about Thmoas Bayes](https://www.the-tls.co.uk/articles/public/thomas-bayes-science-crisis/)
