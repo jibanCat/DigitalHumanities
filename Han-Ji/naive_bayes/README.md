@@ -17,14 +17,13 @@ For example, consider the case to tag a time phrase:
 
 We can see there are some properties to identify in this phrase: 年號 (隆安), 數字 (三、十一), 單位 (年、月). For this phrase, we can calculate the posterior probability of the phase is a time phrase given this phrase
 
-$$P(time \mid phrase) = \frac{P(phrase \mid time) \times P(time) }{ P(phrase)}$$
+<a href="https://www.codecogs.com/eqnedit.php?latex=P(time&space;\mid&space;phrase)&space;=&space;\frac{P(phrase&space;\mid&space;time)&space;\times&space;P(time)&space;}{&space;P(phrase)}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?P(time&space;\mid&space;phrase)&space;=&space;\frac{P(phrase&space;\mid&space;time)&space;\times&space;P(time)&space;}{&space;P(phrase)}" title="P(time \mid phrase) = \frac{P(phrase \mid time) \times P(time) }{ P(phrase)}" /></a>
 
 ### Naive Bayes assumption
 
 By Naive Bayes assumption, the likelehood $P(phrase \mid time)$ could be expressed a product of individual probability of each feature:
 
-$$P(phrase \mid time) = P(features \mid time) = P(feature_1 \mid time) \times ... \times P(feature_n \mid time)$$
-
+<a href="https://www.codecogs.com/eqnedit.php?latex=$$P(phrase&space;\mid&space;time)&space;=&space;P(features&space;\mid&space;time)&space;=&space;P(feature_1&space;\mid&space;time)&space;\times&space;...&space;\times&space;P(feature_n&space;\mid&space;time)$$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$$P(phrase&space;\mid&space;time)&space;=&space;P(features&space;\mid&space;time)&space;=&space;P(feature_1&space;\mid&space;time)&space;\times&space;...&space;\times&space;P(feature_n&space;\mid&space;time)$$" title="$$P(phrase \mid time) = P(features \mid time) = P(feature_1 \mid time) \times ... \times P(feature_n \mid time)$$" /></a>
 For a time phrase in a Chinese historian text, we could build a feature vector based on our experience:
 
 
