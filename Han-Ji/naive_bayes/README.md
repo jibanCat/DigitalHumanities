@@ -9,6 +9,7 @@ Chinese historian tagging platform, like MARKUS, could not return a probability.
 Without putting too much ML techniques on it, we can use Bayes rule to encode our domain knowledge and also return a probabilistic result. 
 
 ## Tag a time phrase
+
 For example, consider the case to tag a time phrase:
 
 ```python
@@ -24,6 +25,7 @@ We can see there are some properties to identify in this phrase: 年號 (隆安)
 By Naive Bayes assumption, the likelehood $P(phrase \mid time)$ could be expressed a product of individual probability of each feature:
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=$$P(phrase&space;\mid&space;time)&space;=&space;P(features&space;\mid&space;time)&space;=&space;P(feature_1&space;\mid&space;time)&space;\times&space;...&space;\times&space;P(feature_n&space;\mid&space;time)$$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$$P(phrase&space;\mid&space;time)&space;=&space;P(features&space;\mid&space;time)&space;=&space;P(feature_1&space;\mid&space;time)&space;\times&space;...&space;\times&space;P(feature_n&space;\mid&space;time)$$" title="$$P(phrase \mid time) = P(features \mid time) = P(feature_1 \mid time) \times ... \times P(feature_n \mid time)$$" /></a>
+
 For a time phrase in a Chinese historian text, we could build a feature vector based on our experience:
 
 
@@ -41,6 +43,7 @@ The normalization factor is following
 Therefore, Bayes rule give you the posterior:
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=P(time&space;\mid&space;phrase)&space;=&space;\frac{P(time)&space;\prod{&space;P(feature_n&space;\mid&space;time)}}{P(time)&space;\prod{&space;P(feature_n&space;\mid&space;time)}&space;&plus;&space;P(\sim&space;time)&space;\prod{&space;P(feature_n&space;\mid&space;\sim&space;time)}}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?P(time&space;\mid&space;phrase)&space;=&space;\frac{P(time)&space;\prod{&space;P(feature_n&space;\mid&space;time)}}{P(time)&space;\prod{&space;P(feature_n&space;\mid&space;time)}&space;&plus;&space;P(\sim&space;time)&space;\prod{&space;P(feature_n&space;\mid&space;\sim&space;time)}}" title="P(time \mid phrase) = \frac{P(time) \prod{ P(feature_n \mid time)}}{P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}}" /></a>
+
 ## Examples:
 
 ```python
