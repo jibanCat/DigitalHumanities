@@ -6,7 +6,24 @@ import pandas as pd
 from collections import defaultdict
 
 class NaiveBayes:
+    """
+    A NaiveBayes class designed for calculate the probability of a 
+    specific type of tags (time, place, person names, etc). 
+    It is currently only able to calculate the probability for one sentence a 
+    a time. 
+    Also noted that I use hard-coded definition of likelihood tables to 
+    calculate the posterior. Users are expected to use their domain knowledge 
+    to decide the likelihoods based on whatever methods.
 
+    I followed a similar way for using Bayes rule as in 
+        <How to Write a Spelling Corrector: https://norvig.com/spell-correct.html>
+
+    Args:
+        names (list) : a list of feature names.
+        iterables (list) : a list of iterables corresponding to feature names.
+        likelihoods (list) : a list of probabilities corresponing to feature names.
+        prior (float) : a prior probability associated with the type of tag you want to calssify.
+    """
 
     def __init__(self, names=[], iterables=[], likelihoods=[], prior=0.5, filename=None):
         self.prior = prior
@@ -167,4 +184,3 @@ class NaiveBayes:
             self.feature_vector['irrelevant'] = len(re.sub(
                 r"[{}]".format(''.join(matched_words)), r"", phrase
             )) if len(matched_words) > 0 else len(phrase)
-    
