@@ -37,16 +37,11 @@ the probs are given by the model in my brain. We could justify this model by col
 
 The normalization factor is following
 
-$$
-P(phrase) = P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}
-$$
+<a href="https://www.codecogs.com/eqnedit.php?latex=P(phrase)&space;=&space;P(time)&space;\prod{&space;P(feature_n&space;\mid&space;time)}&space;&plus;&space;P(\sim&space;time)&space;\prod{&space;P(feature_n&space;\mid&space;\sim&space;time)}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?P(phrase)&space;=&space;P(time)&space;\prod{&space;P(feature_n&space;\mid&space;time)}&space;&plus;&space;P(\sim&space;time)&space;\prod{&space;P(feature_n&space;\mid&space;\sim&space;time)}" title="P(phrase) = P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}" /></a>
 
 Therefore, Bayes rule give you the posterior:
 
-$$
-P(time \mid phrase) = \frac{P(time) \prod{ P(feature_n \mid time)}}{P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}}
-$$
-
+<a href="https://www.codecogs.com/eqnedit.php?latex=P(time&space;\mid&space;phrase)&space;=&space;\frac{P(time)&space;\prod{&space;P(feature_n&space;\mid&space;time)}}{P(time)&space;\prod{&space;P(feature_n&space;\mid&space;time)}&space;&plus;&space;P(\sim&space;time)&space;\prod{&space;P(feature_n&space;\mid&space;\sim&space;time)}}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?P(time&space;\mid&space;phrase)&space;=&space;\frac{P(time)&space;\prod{&space;P(feature_n&space;\mid&space;time)}}{P(time)&space;\prod{&space;P(feature_n&space;\mid&space;time)}&space;&plus;&space;P(\sim&space;time)&space;\prod{&space;P(feature_n&space;\mid&space;\sim&space;time)}}" title="P(time \mid phrase) = \frac{P(time) \prod{ P(feature_n \mid time)}}{P(time) \prod{ P(feature_n \mid time)} + P(\sim time) \prod{ P(feature_n \mid \sim time)}}" /></a>
 ## Examples:
 
 ```python
@@ -68,10 +63,10 @@ So, we are 89% certain that `"隆安三年十一月"` is a time phrase, 0.2% cer
 
 ## Tag a Place Name (Table)
 
-| is place | 地名 | 方向 | 城鎮 | 單位 | 數字 |  年號   | 經驗字 |
+| is place | 地名 | 方向 | 城鎮 | 單位 | 數字 |  年號   | 經驗字 |
 | ----    | ---  | --- | --- | --- | --- | ---      | --- |
-| +       | 0.8  | 0.75 | 0.7 | 0.2 | 0.2 | 0.3     | 0.4 | 
-| -       | 0.2  | 0.25 | 0.3 | 0.8 | 0.8 | 0.7     | 0.6 | 
+| +       | 0.8  | 0.75 | 0.7 | 0.2 | 0.2 | 0.3     | 0.4 |
+| -       | 0.2  | 0.25 | 0.3 | 0.8 | 0.8 | 0.7     | 0.6 |
 
 ## Naive Class for Single Phrase
 
@@ -89,14 +84,14 @@ or
 ```python
 from Naive import NaiveBayes
 
-naive = NaiveBayes(filename=filename_of_definition_json, prior=0.3)
+naive = NaiveBayes(filename="definition_time.json", prior=0.3)
 ```
 
-- calc the prob of a phrase beinging a time phrase
+- calc the prob of a phrase being a time phrase
 
 ```python
 naive.calc_posterior('興寧三年')
-# 0.8571428571428572
+# 0.8571428571428572
 ```
 
 - Still working on: fit a bunch of training data to get the likelihood and iterables.
