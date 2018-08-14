@@ -47,7 +47,11 @@ class Book:
         self.paths = []
         self.author_bag = defaultdict(list)
         self.bookname    = bookname
-        self.date        = datetime.strptime(date, '%Y-%m-%d')
+        try:
+            self.date        = datetime.strptime(date, '%Y-%m-%d')
+        except (TypeError,AttributeError,ValueError) as e:
+            print("[Warning] No datetime input provided!")
+            self.date = ""
         self.creator     = creator
         self.description = description
         ### ?
@@ -82,16 +86,14 @@ class Book:
     def _pretty_html(self, soup):
         """cut off irrelevant content, such as side columns in the webpage, from the Han-Ji HTML source page. 
         This procedure aims to save memory for the computer."""
-        head = soup.find("head")
         span_id_fontstyle = str(soup.find("span", {"id": "fontstyle"}))
         path  = str(soup.find('a', attrs={'class', 'gobookmark'}))
         HTML_string = """<html>
-                {}
             <body>
                 {}
             </body>
         </html>
-        """.format(str(head), "{}\n\t{}".format(path, span_id_fontstyle))
+        """.format("{}\n\t{}".format(path, span_id_fontstyle))
         return HTML_string
     
     def fetch_data(self, URL, pages_limit=10000, print_bookmark=False, html_cutoff=False,
