@@ -22,7 +22,7 @@ We can see there are some properties to identify in this phrase: 年號 (隆安)
 
 ### Naive Bayes assumption
 
-By Naive Bayes assumption, the likelehood $P(phrase \mid time)$ could be expressed a product of individual probability of each feature:
+By Naive Bayes assumption, the likelehood P(phrase | time) could be expressed a product of individual probability of each feature:
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=$$P(phrase&space;\mid&space;time)&space;=&space;P(features&space;\mid&space;time)&space;=&space;P(feature_1&space;\mid&space;time)&space;\times&space;...&space;\times&space;P(feature_n&space;\mid&space;time)$$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$$P(phrase&space;\mid&space;time)&space;=&space;P(features&space;\mid&space;time)&space;=&space;P(feature_1&space;\mid&space;time)&space;\times&space;...&space;\times&space;P(feature_n&space;\mid&space;time)$$" title="$$P(phrase \mid time) = P(features \mid time) = P(feature_1 \mid time) \times ... \times P(feature_n \mid time)$$" /></a>
 
@@ -100,4 +100,4 @@ naive.calc_posterior('興寧三年')
 
 ## Resources
 
-- [Story about Thmoas Bayes](https://www.the-tls.co.uk/articles/public/thomas-bayes-science-crisis/)
+- [Story about Thomas Bayes](https://www.the-tls.co.uk/articles/public/thomas-bayes-science-crisis/)
