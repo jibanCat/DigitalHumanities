@@ -1,4 +1,6 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
+### WHY "defaultdict", INSTEAD OF THE REGULAR "dict" FUNCTION?
+from datetime import datetime
 from bs4 import BeautifulSoup
 import bs4
 from urllib import request
@@ -14,27 +16,27 @@ class Book:
     """Han-Ji '<http://hanchi.ihp.sinica.edu.tw/ihp/hanji.htm>'_ Dataset.
     
     Attributes:
-        flat_bodies (list): a list contained all htmls 
-        flat_passages (list): a list contained all text of passages. Users sould define their own methods to organize the passages.
-        flat_heads (list): a list contained all text of heads. Users sould define their own methods to organize the heads.
-        flat_meta (list): a list contained all metadata(dictionary). User sould define their own methods to extract metadata.
-        paths (list): a list of paths extracted from bookmark. e.g., 集／總集／文選／卷第二十七　詩戊之一／樂府上／古樂府三首／飲馬長城窟行(P.1277)
-        author_bag (dict): a dictionary stores all authors name and their comments. The structure is like this: 
-        author_bag is a template that allow you to use for further applications such as extrac metadata, but it is not working well for every books. 
-        
+        flat_bodies (list): a list containing all htmls 
+        flat_passages (list): a list containing the text of all passages (i.e., every individual piece in a book). Users should define their own methods to organize the passages.
+        flat_heads (list): a list containing all the text of the heads (i.e., the metadata at the top of each individual piece, like title and author). Users should define their own methods to organize the heads.
+        flat_meta (list): a list containing all metadata (dictionary) extracted from bookmarks. User should define their own methods to extract metadata.
+        paths (list): a list of paths extracted from the "bookmark" provided in the database. e.g., 集／總集／文選／卷第二十七　詩戊之一／樂府上／古樂府三首／飲馬長城窟行(P.1277)
     
     Args: 
         bookname (string): the name of the book, default = ''
-        date (string): the date of the book you scraped, default = None
-        creator (string): the name of the creator who create the instance
+        date (string): the date you collected the book, default = None
+        creator (string): the name of the creator who created the instance
         description (string): optional description for the instance
         
     Methods:
         fetch_data(URL): fetch book bs4 obj from a start page URL of a Book in Han-Ji
         extract_paths(): extract paths from bookmark in self.flat_bodies list and append paths to self.paths
-        get_author_bag(): extract paths from bookmark in self.flat_bodies list and append paths to self.paths
         write_htmls(path): write data into htmls on the disk in path
         load_htmls(path): load data from htmls on the disk in path
+        char_word_counts(char, limits=(1,4)): count the number of occurances of the phrase attach with a certain character
+        extract_rare_chars(driver_path, normalization=True): extract rare char in every passages. Note that this function would run for a long time.
+        write_rare_chars(): writing self.flat_rare_chars to `{bookname}_rare_char.json`
+        update_rare_chars(): replace rare char based on `{bookname}_rare_char.json`
     """
     
     def __init__(self, bookname='', date=None, creator=None, description=''):
@@ -45,9 +47,14 @@ class Book:
         self.paths = []
         self.author_bag = defaultdict(list)
         self.bookname    = bookname
-        self.date        = date
+        try:
+            self.date        = datetime.strptime(date, '%Y-%m-%d')
+        except (TypeError,AttributeError,ValueError) as e:
+            print("[Warning] No datetime input provided!")
+            self.date = ""
         self.creator     = creator
         self.description = description
+        ### ?
         
     def __getitem__(self, index):
         '''
@@ -70,18 +77,38 @@ class Book:
             fmt_str += "\n{} authors and commentars.\n".format(len(self.author_bag))
         fmt_str += self.description
         return fmt_str
+
+    def pretty_print(self, index):
+        """pretty print the html source page in a Jupyter notebook cell output"""
+        from IPython.display import HTML
+        return HTML(self._pretty_html( self.flat_bodies[index] ))
+
+    def _pretty_html(self, soup):
+        """cut off irrelevant content, such as side columns in the webpage, from the Han-Ji HTML source page. 
+        This procedure aims to save memory for the computer."""
+        span_id_fontstyle = str(soup.find("span", {"id": "fontstyle"}))
+        path  = str(soup.find('a', attrs={'class', 'gobookmark'}))
+        HTML_string = """<html>
+            <body>
+                {}
+            </body>
+        </html>
+        """.format("{}\n\t{}".format(path, span_id_fontstyle))
+        return HTML_string
     
-    def fetch_data(self, URL, pages_limit=1000, print_bookmark=False,
-                   BASE_URL='http://hanchi.ihp.sinica.edu.tw/ihpc/'):
+    def fetch_data(self, URL, pages_limit=10000, print_bookmark=False, html_cutoff=False,
+                   BASE_URL='http://hanchi.ihp.sinica.edu.tw/ihpc/', sleep_range=(1, 3)):
         '''fetch book bs4 obj from a start page URL of a Book in Han-Ji
         
         Args:
             URL (string): the start page url from han-ji website
-            page_limit (int): the limit of next pages you can scrape. default = 1000
+            page_limit (int): the limit of next pages you can scrape. default = 10000
             print_bookmark (bool): print the bookmark while fetching the data. default = False
+            html_cutoff (bool): cut off the irrelavant side column and tags in Han-Ji raw html files, 
+                                to save memory usage.
         '''
         for i in range(pages_limit):            
-            # use urllib.request to get the html content of the web
+            # use urllib.request to get the html content of the website
             req  = request.Request(URL, headers={'User-Agent': 'Mozilla/5.0'})
             page = request.urlopen(req)
             soup = BeautifulSoup(page, 'lxml')
@@ -93,24 +120,35 @@ class Book:
             else:
                 print("[Info] Start fetching {}. {}/{} epoch.".format(URL, i + 1, pages_limit))            
             
-            # check if it is the same as previous page
+            # check if the content is the same as previous page
+            ### ? -> Response: this line is an ad-hoc solution for dealing with the first page while scraping. There must be a better way to do it.
             if i > 0:
                 buffer = self.flat_bodies[-1].find_all('div', attrs={'style': True})
             else:
-                # used a dummy list for the buffer for the first page
+                # use a dummy list for the buffer for the first page
                 buffer = ['dummy']
             
-            # if the 1st and last elemets in the buffer is the same as current page
+            # if the first and last elements in the buffer are the same as current page
             # delete page and save the current page.
+            ### GOOD SOLUTION, BUT ARE WE SURE THERE ARE NO HIDDEN TRAPS IN USING THIS RULE?  COULD TWO CONSECUTIVE BUT DIFFERENT POEMS HAVE THE SAME START AND END WORD?
+            ### Response: the comparison here is for end and start sentences of a poem. 
+            ### It's quite unlikely two poems have the same start and end senetences, right?
             if (buffer[-1] == 
                 soup.find_all('div', attrs={'style': True})[-1]) and (
                 buffer[0] == 
                 soup.find_all('div', attrs={'style': True})[0]):
                 print("[Warning] This page is the same as the previous one, discard previous one and store the new one.")
-                self.flat_bodies[-1] = soup
+                if html_cutoff == True:
+                    self.flat_bodies[-1] = BeautifulSoup( self._pretty_html(soup), 'lxml' )
+                else:    
+                    self.flat_bodies[-1] = soup
             else:
-            # append to flat bodies
-               self.flat_bodies.append(soup)
+                # append to flat bodies
+                if html_cutoff==True:
+                    self.flat_bodies.append( BeautifulSoup( self._pretty_html(soup), 'lxml'))
+                else:
+                    self.flat_bodies.append(soup)
+               
             
             # find the next page
             next_page = soup.find('img', {'src' : '/ihp/snext.gif'})
@@ -121,92 +159,131 @@ class Book:
                 break
                 
             URL = urllib.parse.urljoin(BASE_URL, url)
-            time.sleep(random.randint(1, 3))
+            time.sleep(random.randint(sleep_range[0], sleep_range[1]))
             
     def extract_paths(self):
         '''extract paths from bookmark in self.flat_bodies list and append paths to self.paths'''
+        self.paths = []
+        
         for soup in self.flat_bodies:
-            # extract gobookmark
+            # extract "gobookmark" class
             path  = soup.find('a', attrs={'class', 'gobookmark'}).text
             self.paths.append(path)
     
-    def get_author_bag(self, indent=4, name_length_limit=5):
-        '''gather a bag of authors (with comments) into a dict based on indents.
-        If indents + paddings are smaller than indent(default=4) and length of the name is smaller than name_length_limit(default=5), then consider it as an author name.
-        '''
-        buffer_author = None
-        
-        for i,soup in enumerate(self.flat_bodies):
-            # get the text body
-            body  = soup.find_all('span', {'id' : 'fontstyle'})[0]
-            author_list = self._plausible_authorlist(body, indent)
-            
-            for author_text in author_list:
-                # one possible dangerous here is that next may not 
-                # be enough if there are multiple authors in one line
-                try:
-                    author = next(iter(self._author_yield(author_text)))
-                except StopIteration:
-                    author = None
-                try:
-                    tag = next(iter(self._tag_yield(author_text)))
-                    if author is None:
-                        print("[Warning] No author name in {} item, but got a tag. Attach this tag to previous author name {}.".format(i, buffer_author))
-                        author = buffer_author 
-                except StopIteration:
-                    if author:
-                        tag = ''
-                        
-                if author:
-                    # check the length of the author name
-                    # split the name with space and check the mean of length
-                    author_split = author.split()
-                    if sum([len(x) for x in author_split]) / len(author_split) < name_length_limit:
-                        # add new key in the author_bag
-                        self.author_bag[author].append((i, tag))    
-                    else:
-                        print("[Warning] Author name, {} in {}, is too long. Discard this one.".format(author, i))
-                        continue
-                    
-                buffer_author = author
-                
     def _sum_indent_and_padding(self, texts):
-        '''Return the sum of indents and paddings in the texts.'''
+        '''returns the sum of indents and paddings in the texts.'''
         return [
             sum([int(num[0]), int(num[1])])
              for text in texts 
              for num in re.findall(r'text-indent:(.*?)em;padding-left:(.*?)em;', text['style'])
         ]        
-                            
-    def _plausible_authorlist(self, body, indent=4):
-        '''get a plausible author list using indent number and 
-        align="right" '''
-        texts  = body.find_all('div', attrs={'style': True})
-        # get the indent of the text
-        sum_indent_padding = self._sum_indent_and_padding(texts)
 
-        # setting threshold: sum_indent_padding > indent for authors
-        author_list = [texts[i] for i,s in enumerate(sum_indent_padding) if s > indent]
+    def _indent_and_padding(self, texts):
+        '''Return the indent and padding tuples of indents and paddings in the texts.'''
+        return [
+            (int(num[0]), int(num[1]))
+             for text in texts 
+             for num in re.findall(r'text-indent:(.*?)em;padding-left:(.*?)em;', text['style'])
+        ]                    
 
-        if body.find('div', attrs={"align": True}):
-            author_list.append(body.find('div', attrs={"align": True}))
-        return author_list
-    
-    def _author_yield(self, author_text):
-        '''yield the first occurance of the NavigableString'''
-        for tag in author_text:
-            if isinstance(tag, bs4.element.NavigableString):
-                if not tag.isspace():
-                    yield tag
+    def extract_rare_chars(self, driver_path, normalization=True):
+        """Extract rare char in every passages. Note that this function would run for a long time.
+        
+        Args: 
+            driver_path (str) : the path to your selenium driver
+            normalization (bool) : whether or not using normalization API in academia sinica, default = True.
+        
+        Updated:
+            self.flat_rare_bag (list) : {"(components of rare chars)" : ("(UNICODE)", "(UTF-8)"), ...}
+        
+        After running this funciton, run 
+        >> self.write_rare_chars() 
+        to write a json.
+        
+        Therefore, you could just run 
+        >> self.update_rare_char()
+        to update rare char in the next time without extracting rare char from web again.
+        """
+        from rare_char_converter import rare_char_converter
+        
+        self.flat_rare_chars = []
+        for body in self.flat_bodies:
+            while 1:
+                try: 
+                    time.sleep(random.randint(2, 5))
+                    text = body.find("span", {"id":"fontstyle"}).text
+                    rare_char_bag = rare_char_converter(text, driver_path, normalization=True)
+                    self.flat_rare_chars.append(rare_char_bag)
+                    break
+                except (TimeoutError, ConnectionResetError, urllib.error.URLError) as e:
+                    print("[Warning] {}, wait for 10 secs.".format(e))
+                    time.sleep(10)    
 
-    def _tag_yield(self, author_text, tag="font", attrs="size"):
-        '''yield  tag with a given attrs'''
-        for tag in author_text:
-            if isinstance(tag, bs4.element.Tag):
-                if "size" in tag.attrs:
-                    yield tag    
-            
-    def write_htmls(self, path='data/'):
+    def write_rare_chars(self):
+        import json
+        with open("{}_rare_char.json".format(self.bookname), "w", encoding="utf-8") as file:
+            json.dump(self.flat_rare_chars, file)
+
+
+    def update_rare_chars(self):
+        """Replace rare char based on `{bookname}_rare_char.json`"""
+        import json
+
+        try:
+            with open("{}_rare_char.json".format(self.bookname), "r", encoding="utf-8") as file:
+                self.flat_rare_chars = json.load(file)
+
+            flat_htmls = []
+            for soup,rare_char in zip(self.flat_bodies, self.flat_rare_chars):
+                html = str(soup)
+                for components,(UICODE, char) in rare_char.items(): 
+                    html = re.sub(components, char, html)
+                flat_htmls.append(BeautifulSoup(html, "lxml"))
+
+            self.flat_bodies = flat_htmls        
+
+        except FileNotFoundError as e:
+            print("[Error] {}_rare_char.json does not exist".format(self.bookname))
+            print("""\ttry to run these lines: 
+            \t>> self.extract_rare_chars()
+            \t>> self.write_rare_chars()\n""")
+
+    def _regexf(self, char, num):
+        return r"[^、。，？！：；「」〔〕『』]{" + str(num) + "}" + char
+
+    def passage_generator(self):
+        '''iterate over every passage regardless the hierarchical structure'''
+        for passages in self.flat_passages:
+            for p in passages:
+                yield p
+
+    def char_word_counts(self, char, limits=(1, 4)):
+        '''
+        Count the number of occurances of the phrase attach with a certain character
+        
+        Args:
+            char (str): the character you want to set as the last character in the phrase.
+            limits (tuple): lower and upper limit for the characters before the `char`.
+
+        Yield:
+            collections.Counter object
+        '''
+        return Counter(list(self._word_generator(char, limits)))
+
+    def _word_generator(self, char, limits):
+        lower, upper = limits
+        for p in self.passage_generator():
+            for i in range(lower, upper):
+                for match in re.finditer(self._regexf(char, i), p):
+                    yield match.group(0)
+
+    def write_htmls(self, path='data/', html_cutoff=False):
+        '''writing all htmls in flat_bodies to the folder data/
+
+        Args:
+            path (str) : the path to the folder you want to write htmls files
+            html_cutoff (bool) : whether or not you want to cut off irrelevant contents in Han-Ji webpage 
+        '''
         try:
             os.makedirs(path)
         except OSError:
@@ -216,12 +293,17 @@ class Book:
             filename = os.path.join(path, '{}_{}.html'.format(
                 self.bookname, str(i).zfill(4)))
             with open(filename, 'w', encoding='utf-8') as file:
-                file.write(str(soup))
+                if html_cutoff==True:
+                    file.write( self._pretty_html(soup) )
+                else:
+                    file.write(str(soup))
                 
         # update the description
         self.description += 'Writing data to {}.\n'.format(os.path.join(path, self.bookname + '*'))
         
     def load_htmls(self, path='data/'):
+        '''loading all files with filename = "bookname_*.html" in path data/
+        '''
         self.flat_bodies = []
         i = 0
         while 1:

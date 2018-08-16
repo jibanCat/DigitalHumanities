@@ -1,54 +1,155 @@
-# Han-Ji (漢籍) Scraper
-This Scraper was designed for special purpose, so the output format is `.csv`
-and we separated the passages iteself (本文) and the comments (註) into different columns.
+# Han-Ji (漢籍) Fetcher
 
-The general usage of this script: just typing the following command in the terminal
-```bash
-python Scraping.py --URL=hanji?@72^74245715^802^^^60407005000900010001@@355855896
-```
-The `--URL` flag takes the last part of url address of the text page of Han-Ji (漢籍), 
-but it is fine if you feed in the whole url like `--URL=http://hanchi.ihp.sinica.edu.tw/ihpc/hanji?@72^74245715^802^^^60407005000900010001@@355855896`.
+- The fetcher function is defined as a method in the `Book` class. You can fetch the html files using
 
-----
-## Details of the Output Format
-- Passage (本文): file name is `(#)_Passage_(Name of the Passage).csv`.
+```python
+from Book import Book
+# get a instance of Book class
+book = Book(bookname="name", date="2018-05-29", creator="MF)
 
-| Column Name | passage (本文) | comment (註) |
-| ---- | ----    | ----    |
-| Criteria    | _ | `<font size=?></font>`, font tags with a size attribute |
-
-- Head (標題): file name is `(#)_Head_(Name of the Passage).csv`.
-
-| Column Name | passage (標題) | comment (註) | author (作者) |
-| ---- | ----    | ----    | ---- |
-| Criteria    | `<h3></h3>`, `h3` tag | `<font size=?></font>`, font tags with a size attribute | `<div align=?></div>`, `div` tag with a align attribute |
-
-
-Note: not everytime the author column would captch author's name. Anything with `align` attribute would appear in this column.
----
-
-# Writing to XML Files
-If anyone want to write the `.csv` files into XML format, I provided a script to do this job: 
-
-```bash
-python HanJi_csv2xml.py --filename_passage 1_Passage_西都賦\(P.5\).csv
+# get the htmls from the Han-Ji website, The UR
+book.fetch_data('http://hanchi.ihp.sinica.edu.tw/ihpc/hanji?@30^1389784921^802^^^60311004001000010006@@460127924',
+                pages_limit=1000, print_bookmark=False,)
 ```
 
-after `--filename_passage` flag is the `.csv` file you want to convert. Please note that you only have to provide `(#)_Passage_(Name of the Passage).csv` files for the flag, and the script would automatically read the head files. 
+- Now, `bs4` objects are stored in the `book.flat_bodies` list. You can write the html files into `data` folder via
 
-The choice of XML format is like this:
-```html
-<lg type="poem">
-  <author></author>
-  <head>
-    <l>西都賦 </l>
-  </head>
-  <l>有西都賓問於東都主人曰：「蓋聞皇漢之初經營也，嘗有意乎都河洛矣。輟而弗康，寔用西遷，作我上都。主人聞其故而覩其制乎？」<comment>孝經鈎命決曰：道機合者稱皇。尚書曰：厥既得吉卜，乃經營。東都有河南洛陽，故曰河洛也。鄭玄論語注曰：輟，止也，張衛切。孔安國尚書傳曰：康，安也。穀梁傳曰：葬我君桓公。我君，接上下也。</comment></l>
-  <l>主人曰：「未也。願賓攄懷舊之蓄念，發思古之幽情。博我以皇道，弘我以漢京。」<comment>廣雅曰：攄，舒也。孔安國尚書傳曰：蓄，積也。論語，顏淵曰：夫子博我以文。</comment></l>
-  <l>賓曰：「唯唯。<comment>禮記曰：父召，無諾，唯而起。</comment></l>
-...
-...
-</lg>
+```python
+# writing htmls into a folder
+book.write_htmls(path="data")
+
+# loading files to book
+book.load_htmls(path="data")
 ```
 
-Please feel free to modify the script to change the XML tags and fit your own study purpose.
+- Exctract the bookmark (the dependencies of the poems) out of the page, just typed
+
+```python
+book.extract_paths()
+```
+
+- To preview the first page of Han-Ji page in a pretty HTML format, type
+
+```python
+book.pretty_print(0) # 0 for the first page in fetched Han-Ji data
+```
+
+- To convert rare char components (構字形) in `book.flat_bodies` html sources, type
+
+```python
+# if the {name}_rare_char.json exist in your path
+book.update_rare_chars()
+```
+
+otherwise
+
+```python
+# if the {name}_rare_char.json does not exist
+driver_path = '(PATH to your selenium driver)'
+book.extract_rare_chars(driver_path) # this line would take a very long time, be careful before you execute it
+book.write_rare_chars() # write to name_rare_char.json
+book.update_rare_chars()
+```
+
+- To count the occurances of the phrase attached with a certain character, use `book.char_word_counts`. See _`SongShu` Organizer_ for futher details.  
+
+```python
+# list the 5 most common words with the last character == `char`,  
+# consider phrase with length 2 to 6.
+# char should be a string
+book.char_word_counts(char, limits=(1, 5)).most_common(5)
+```
+
+Note: before using `char_word_counts` method, make sure you already extraced passages to `book.flat_passages`.
+
+## WenXuan (文選) Organizer
+
+- The `WenXuan.py` was designed as a wrapper of the `Book.py` and have specific methods to organize the texts files in WenXuan
+
+```python
+from WenXuan import WenXuan
+# get a instance out of WenXuan class
+wenxuan = WenXuan('2018-05-29', 'MF')
+wenxuan.fetch_data(URL="(URL for Han-Ji WenXuan)",
+                pages_limit=1000, print_bookmark=True,)
+
+# organize the text files
+wenxuan.extract_paths()         # extract the bookmarks
+wenxuan.get_author_bag()        # get the bag of author names and comments
+wenxuan.extract_meta()          # extract the meta data
+wenxuan.passages2tuples()       # get the passsage into (text, comment) tuples
+wenxuan.heads2tuples()          # get headers into (head, comment, ...) tuples
+wenxuan.extract_commentators()  # append commentators to metadata
+wenxuan.extract_sound_glosses() # append all sound glosses in comments into a list and remove them from the self.flat_passages
+```
+
+- Writing to CSV: `WenXuan.py` provides a method to write `wenxuan.flat_passages` and `wenxuan.flat_meta` to a series of CSV files in folder (default folder is `"/文選"`). Metadata is listed in the comments (`#`) in the headers.
+
+```python
+wenxuan.write_passages_ECSV()
+```
+
+- To count the occurances of the phrase attached with a certain character, e.g., '曰':
+
+```python
+wenxuan.char_word_counts('曰', limits=(1, 4)).most_common(5)
+# [('子曰', 3517), ('書曰', 3495), ('詩曰', 2843), ('善曰', 2029), ('注曰', 2018)]
+```
+
+## (Ongoing) SongShu (宋書) Organizer
+
+- The `SongShu.py` was also designed as a wrapper of `Book.py` class. SongShu organizer separated every pieces of works into passages.
+
+```python
+from SongShu import SongShu
+songshu = SongShu("2018-06-28", "MF")
+songshu.fetch_data(URL="(The first page URL of SongShu in Han-Ji)", pages_limit=2000, print_bookmark=True)
+songshu.write_htmls()
+```
+
+- To recover the fetched data we downloaded last time, run
+
+```python
+songshu = SongShu("2018-06-28", "MF")
+songshu.load_htmls()
+# [Info] Stop at loading data/ShongShu_0851.html.
+# [Info] Total length of the data is 851.
+```
+
+- To extract metadata, bookmarks, and organize the passages:
+
+```python
+# preprocessing the songshu data to get metadata and bookmarks
+# and separate the passages in every pages
+songshu.extract_paths()
+songshu.extract_meta()
+songshu.extract_passages()
+```  
+
+The <font color="#A60628">Warning</font> in the above output cell show that some pages in SonShu do not have a clear definition of **separating the passages**.
+
+- To count the occurances of the phrase attached with a certain character, e.g., '洲':
+
+```python
+songshu.char_word_counts('洲', limits=(1, 5)).most_common(5)
+# [('蔡洲', 14), ('鬱洲', 9), ('嶸洲', 6), ('崢嶸洲', 6), ('至蔡洲', 6)]
+```
+
+In this way, it is possible to extract natural geographical names.
+
+## Rare Character Identifier
+
+Some characters in Han-Ji are rare chars. In this case, if we use `urllib` to parse the source page, we only get the fragments of the rare chars (構字形). 
+
+To resolve this situation, we can use JavaScript API in http://char.iis.sinica.edu.tw/API/normalization.htm to acquire the fragments of chars, and then we can use the fragments to search the correct rare char unicodes. 
+
+The following lines show how to fetch the a bag of rare char unicodes from a text string:
+
+```python
+from rare_char_converter import rare_char_converter
+
+selenium_driver = "(PATH TO YOUR SELENIUM DRIVER)"
+text = "(YOUR HAN-JI TEXT)"
+rare_char_converter(text, selenium_driver)
+# Return: dict, {"(fragments of char)" : (UNICODE, string of the rare char)}
+```
