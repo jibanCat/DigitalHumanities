@@ -74,13 +74,7 @@ wenxuan.fetch_data(URL="(URL for Han-Ji WenXuan)",
                 pages_limit=1000, print_bookmark=True,)
 
 # organize the text files
-wenxuan.extract_paths()         # extract the bookmarks
-wenxuan.get_author_bag()        # get the bag of author names and comments
-wenxuan.extract_meta()          # extract the meta data
-wenxuan.passages2tuples()       # get the passsage into (text, comment) tuples
-wenxuan.heads2tuples()          # get headers into (head, comment, ...) tuples
-wenxuan.extract_commentators()  # append commentators to metadata
-wenxuan.extract_sound_glosses() # append all sound glosses in comments into a list and remove them from the self.flat_passages
+wenxuan.extract_all()
 ```
 
 - Writing to CSV: `WenXuan.py` provides a method to write `wenxuan.flat_passages` and `wenxuan.flat_meta` to a series of CSV files in folder (default folder is `"/文選"`). Metadata is listed in the comments (`#`) in the headers.
@@ -96,7 +90,7 @@ wenxuan.char_word_counts('曰', limits=(1, 4)).most_common(5)
 # [('子曰', 3517), ('書曰', 3495), ('詩曰', 2843), ('善曰', 2029), ('注曰', 2018)]
 ```
 
-## (Ongoing) SongShu (宋書) Organizer
+## SongShu (宋書) Organizer
 
 - The `SongShu.py` was also designed as a wrapper of `Book.py` class. SongShu organizer separated every pieces of works into passages.
 
@@ -121,12 +115,10 @@ songshu.load_htmls()
 ```python
 # preprocessing the songshu data to get metadata and bookmarks
 # and separate the passages in every pages
-songshu.extract_paths()
-songshu.extract_meta()
-songshu.extract_passages()
+songshu.extract_all()
 ```  
 
-The <font color="#A60628">Warning</font> in the above output cell show that some pages in SonShu do not have a clear definition of **separating the passages**.
+The <font color="#A60628">Warning</font> in the above output cell show that some pages in SongShu do not have a clear definition of **separating the passages**.
 
 - To count the occurances of the phrase attached with a certain character, e.g., '洲':
 
