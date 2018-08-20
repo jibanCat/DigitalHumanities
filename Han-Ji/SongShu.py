@@ -9,6 +9,7 @@ import random
 import re
 import os
 import glob
+import logging
 
 class SongShu(Book):
     """SongShu Dataset
@@ -28,8 +29,17 @@ class SongShu(Book):
                             If there's no passage in this page, merge all texts into one string.
     """
     
-    def __init__(self, date, creator, description=''):
-        Book.__init__(self, 'SongShu', date, creator, description)
+    def __init__(self, date, creator):
+        Book.__init__(self, 'SongShu', date, creator)
+
+    def extract_all(self):
+        # preprocessing the songshu data to get metadata and bookmarks
+        self.update_rare_chars()
+        # and separate the passages in every pages
+        self.extract_paths()
+        self.extract_meta()
+        self.extract_passages()
+        self.__repr__()
 
     def extract_meta(self):
         self.flat_meta = []
@@ -59,7 +69,7 @@ class SongShu(Book):
                     self._passage2paragraphs(texts)
                 )
             except IndexError as e:
-                print("[Warning] Not the right indent.", path)
+                logging.warning("Not the right indent.{}".format(path))
                 self.flat_passages.append(
                     ''.join([text.text for text in texts])
                 )

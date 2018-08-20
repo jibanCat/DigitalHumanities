@@ -8,6 +8,7 @@ import time
 import random
 import re
 import os
+import logging
 import pandas as pd
 
 class WenXuan(Book):
@@ -35,9 +36,10 @@ class WenXuan(Book):
     
     """
     
-    def __init__(self, date, creator, description=''):
-        Book.__init__(self, 'wenxuan', date, creator, description)
+    def __init__(self, date, creator):
+        Book.__init__(self, 'WenXuan', date, creator)
         self.sound_glosses_bag = []
+        self.description_dataframe.loc[2,"method"] = "self.passages2tuples"
         
     def _path_author_name_yield(self, fifth_path_item):
         '''yield the author name in the path via checking if it is in the author_bag'''
@@ -47,10 +49,24 @@ class WenXuan(Book):
             if fifth_path_item[:i] in self.author_bag:
                 yield (i, fifth_path_item[:i])
 
+    def extract_all(self):
+        self.update_rare_chars()
+        self.extract_paths()         # extract the bookmarks
+        self.get_author_bag()        # get the bag of author names and comments
+        self.extract_meta()          # extract the meta data
+        self.passages2tuples()       # get the passsage into (text, comment) tuples
+        self.heads2tuples()          # get headers into (head, comment, ...) tuples
+        self.extract_commentators()  # append commentators to metadata
+        self.extract_sound_glosses() # append all sound glosses in comments into a list and remove them from the self.flat_passages
+        self.__repr__()
+
+
     def extract_meta(self):
         '''Extract meta data from self.paths.
         Note: index 3 in path for scroll, 4 for category, 5 for author name, after 5 for the title.
         '''
+        self.flat_meta = []
+
         for path in self.paths:            
             # initialize the meta data
             meta = defaultdict(str)
@@ -64,7 +80,7 @@ class WenXuan(Book):
                 try:
                     idx, author = next(iter(self._path_author_name_yield(path_split[5])))
                 except StopIteration:
-                    print('[Warning] No author name in the path, {}.'.format(path))
+                    logging.warning('No author name in the path, {}.'.format(path))
                     author = ''
                     idx = 0
 
@@ -77,7 +93,7 @@ class WenXuan(Book):
                 poem     = ''
                 scroll   = ''
                 title    = path_split[3]
-                print('[Warning] Path is too short, {}. Only use title for metadata.'.format(path))
+                logging.warning('Path is too short, {}. Only use title for metadata.'.format(path))
                 
 
             # add values for keys
@@ -87,16 +103,12 @@ class WenXuan(Book):
             meta['author'] = author
             meta['title']  = title
             self.flat_meta.append(meta)       
-        
-        # update description
-        self.description += "Grabbed meta data with {} unique author names from paths.\n".format(len(set(meta['author'] for meta in self.flat_meta)))
-
 
     def passages2tuples(self, indent=4):
         '''Call _passages2TextCommentPairs to transform self.flat_bodies, 
         to text comment pairs and store in self.flat_passages'''
         self.flat_passages = []
-        
+
         for body in self.flat_bodies:
             texts  = body.find_all('div', attrs={'style': True})
 
@@ -109,12 +121,6 @@ class WenXuan(Book):
             tcpairs = self._passages2TextCommentPairs(texts)
             self.flat_passages.append(tcpairs)
             
-        # update description
-        mean_num_pairs = sum(
-            [len(tcpairs) for tcpairs in self.flat_passages]
-        ) / len(self.flat_passages)
-        self.description += "Got text comment pairs for WenXuan with mean of the pairs for each passage is {}.\n".format(mean_num_pairs)
-
     def _passages2TextCommentPairs(self, texts, comment_attr='size'):
         '''
         Input texts object (bs4.element.ResultSet) and return 
@@ -208,10 +214,6 @@ class WenXuan(Book):
                 
             # append header with the following content
             self.flat_heads.append(flat_head)
-
-        # update desciption
-        mean_len_comment = sum([len(c) for head in self.flat_heads for _,c in head]) / len(self.flat_heads)
-        self.description += "Grabbed tuple pairs from heads, the mean number of elements follow by the header is {}.".format(mean_len_comment)  
         
     def extract_commentators(self):
         '''Insert commentators into metadata from author_bag'''
@@ -231,10 +233,7 @@ class WenXuan(Book):
             if char not in exclude:
                 return char
             else: continue       
-
-    """
-    Figure out a way to do in Bayesian way, to give a prob of sound glosses correctness
-    """                
+                
     def _sound_glosses_check(self, text, comment):
         '''Check the comment is a sound glosses or not.
         If it is a sound glosses, return (character reffered to, sound) as a tuple.'''
@@ -307,7 +306,7 @@ class WenXuan(Book):
                 try:
                     tag = next(iter(self._tag_yield(author_text)))
                     if author is None:
-                        print("[Warning] No author name in {} item, but got a tag. Attach this tag to previous author name {}.".format(i, buffer_author))
+                        logging.warning("No author name in {} item, but got a tag. Attach this tag to previous author name {}.".format(i, buffer_author))
                         author = buffer_author 
                 except StopIteration:
                     if author:
@@ -321,7 +320,7 @@ class WenXuan(Book):
                         # add new key in the author_bag
                         self.author_bag[author].append((i, tag))    
                     else:
-                        print("[Warning] Author name, {} in {}, is too long. Discard this one.".format(author, i))
+                        logging.warning("Author name, {} in {}, is too long. Discard this one.".format(author, i))
                         continue
                     
                 buffer_author = author
