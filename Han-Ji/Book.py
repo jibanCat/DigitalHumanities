@@ -8,9 +8,14 @@ import urllib
 import time
 import random
 import re
-import os
+import os, sys
 import glob
+import logging
+import pandas as pd
 
+# logging information
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 class Book:
     """Han-Ji '<http://hanchi.ihp.sinica.edu.tw/ihp/hanji.htm>'_ Dataset.
@@ -26,7 +31,6 @@ class Book:
         bookname (string): the name of the book, default = ''
         date (string): the date you collected the book, default = None
         creator (string): the name of the creator who created the instance
-        description (string): optional description for the instance
         
     Methods:
         fetch_data(URL): fetch book bs4 obj from a start page URL of a Book in Han-Ji
@@ -39,7 +43,7 @@ class Book:
         update_rare_chars(): replace rare char based on `{bookname}_rare_char.json`
     """
     
-    def __init__(self, bookname='', date=None, creator=None, description=''):
+    def __init__(self, bookname='', date=None, creator=None):
         self.flat_bodies   = []
         self.flat_passages = []
         self.flat_heads    = []
@@ -50,11 +54,10 @@ class Book:
         try:
             self.date        = datetime.strptime(date, '%Y-%m-%d')
         except (TypeError,AttributeError,ValueError) as e:
-            print("[Warning] No datetime input provided!")
+            logging.warning("No datetime input provided!")
             self.date = ""
         self.creator     = creator
-        self.description = description
-        ### ?
+        self.description_dataframe = self._description_dataframe()
         
     def __getitem__(self, index):
         '''
@@ -69,14 +72,18 @@ class Book:
     def __len__(self):
         return len(self.flat_bodies)
     
+    def _description_dataframe(self):
+        types = ["meta", "path", "passages",]
+        variables = ["flat_meta", "paths", "flat_passages",]
+        methods = ["self.extract_meta", "self.extract_paths", "self.extract_passages"]
+        current_lengths = [len(self.flat_meta), len(self.paths), len(self.flat_passages)]
+        df = pd.DataFrame([types, variables, methods, current_lengths]).T 
+        df.columns = ['type', 'variable', 'method', 'current_length']
+        return df
+
     def __repr__(self):
-        fmt_str = "Dataset {} ".format(self.bookname)
-        fmt_str += "created by {} at {}.\n".format(self.creator, self.date)
-        fmt_str += "{} data points. ".format(self.__len__()) 
-        if len(self.author_bag) > 2:
-            fmt_str += "\n{} authors and commentars.\n".format(len(self.author_bag))
-        fmt_str += self.description
-        return fmt_str
+        description = self.description_dataframe.to_string()
+        return description
 
     def pretty_print(self, index):
         """pretty print the html source page in a Jupyter notebook cell output"""
@@ -115,10 +122,10 @@ class Book:
 
             # show information on the screen
             if print_bookmark == True:
-                print("[Info] Start fetching {}. {}/{} epoch.".format(
+                logging.info("Start fetching {}. {}/{} epoch.".format(
                     soup.find('a', attrs={'class', 'gobookmark'}).text, i + 1, pages_limit))            
             else:
-                print("[Info] Start fetching {}. {}/{} epoch.".format(URL, i + 1, pages_limit))            
+                logging.info("Start fetching {}. {}/{} epoch.".format(URL, i + 1, pages_limit))            
             
             # check if the content is the same as previous page
             ### ? -> Response: this line is an ad-hoc solution for dealing with the first page while scraping. There must be a better way to do it.
@@ -137,7 +144,7 @@ class Book:
                 soup.find_all('div', attrs={'style': True})[-1]) and (
                 buffer[0] == 
                 soup.find_all('div', attrs={'style': True})[0]):
-                print("[Warning] This page is the same as the previous one, discard previous one and store the new one.")
+                logging.warning("This page is the same as the previous one, discard previous one and store the new one.")
                 if html_cutoff == True:
                     self.flat_bodies[-1] = BeautifulSoup( self._pretty_html(soup), 'lxml' )
                 else:    
@@ -155,12 +162,16 @@ class Book:
             if next_page != None:
                 url = next_page.find_parent()['href']
             else:
-                print('[Info] No further next page. Stop fetching.')
+                logging.info('No further next page. Stop fetching.')
                 break
                 
             URL = urllib.parse.urljoin(BASE_URL, url)
             time.sleep(random.randint(sleep_range[0], sleep_range[1]))
             
+    def extract_all(self):
+        '''do all extractions at one time'''
+        pass
+
     def extract_paths(self):
         '''extract paths from bookmark in self.flat_bodies list and append paths to self.paths'''
         self.paths = []
@@ -170,6 +181,14 @@ class Book:
             path  = soup.find('a', attrs={'class', 'gobookmark'}).text
             self.paths.append(path)
     
+    def extract_meta(self):
+        '''extract meta data from self.paths.'''
+        pass
+
+    def extract_passages(self):
+        '''extract passages from the Book. Users should defined their own methods to organize the Book.'''
+        pass 
+
     def _sum_indent_and_padding(self, texts):
         '''returns the sum of indents and paddings in the texts.'''
         return [
@@ -216,7 +235,7 @@ class Book:
                     self.flat_rare_chars.append(rare_char_bag)
                     break
                 except (TimeoutError, ConnectionResetError, urllib.error.URLError) as e:
-                    print("[Warning] {}, wait for 10 secs.".format(e))
+                    logging.warning("{}, wait for 10 secs.".format(e))
                     time.sleep(10)    
 
     def write_rare_chars(self):
@@ -243,10 +262,11 @@ class Book:
             self.flat_bodies = flat_htmls        
 
         except FileNotFoundError as e:
-            print("[Error] {}_rare_char.json does not exist".format(self.bookname))
-            print("""\ttry to run these lines: 
+            logging.error("""[Error] {}_rare_char.json does not exist
+
+            try to run these lines: 
             \t>> self.extract_rare_chars()
-            \t>> self.write_rare_chars()\n""")
+            \t>> self.write_rare_chars()\n""".format(self.bookname))
 
     def _regexf(self, char, num):
         return r"[^、。，？！：；「」〔〕『』]{" + str(num) + "}" + char
@@ -297,10 +317,7 @@ class Book:
                     file.write( self._pretty_html(soup) )
                 else:
                     file.write(str(soup))
-                
-        # update the description
-        self.description += 'Writing data to {}.\n'.format(os.path.join(path, self.bookname + '*'))
-        
+                        
     def load_htmls(self, path='data/'):
         '''loading all files with filename = "bookname_*.html" in path data/
         '''
@@ -313,10 +330,7 @@ class Book:
                 with open(filename, 'r', encoding='utf-8') as file:
                     self.flat_bodies.append(BeautifulSoup(file.read(), 'lxml'))
             else:
-                print("[Info] Stop at loading {}.".format(filename))
+                logging.info("Stop at loading {}.".format(filename))
                 break
             i += 1
-        print("[Info] Total length of the data is {}.".format(len(self.flat_bodies)))
-        
-        # update the description
-        self.description += 'Loading data from {}.\n'.format(path.format(os.path.join(path, self.bookname + '*')))
+        logging.info("Total length of the data is {}.".format(len(self.flat_bodies)))
