@@ -29,7 +29,7 @@ class SongShu(Book):
     """
     
     def __init__(self, date, creator, description=''):
-        Book.__init__(self, 'ShongShu', date, creator, description)
+        Book.__init__(self, 'SongShu', date, creator, description)
 
     def extract_meta(self):
         self.flat_meta = []
@@ -83,4 +83,4 @@ class SongShu(Book):
             else:
                 new_texts[-1] += ''.join([s for s in text if isinstance(s, bs4.NavigableString)])
             
-        return new_texts                
+        return new_texts   
