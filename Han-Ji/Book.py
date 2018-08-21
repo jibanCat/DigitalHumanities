@@ -1,5 +1,4 @@
 from collections import defaultdict, Counter
-### WHY "defaultdict", INSTEAD OF THE REGULAR "dict" FUNCTION?
 from datetime import datetime
 from bs4 import BeautifulSoup
 import bs4
