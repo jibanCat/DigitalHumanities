@@ -12,6 +12,9 @@ import os, sys
 import glob
 import logging
 import pandas as pd
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import HtmlLexer
 
 # logging information
 logger = logging.getLogger()
@@ -59,6 +62,20 @@ class Book:
         self.creator     = creator
         self.description_dataframe = self._description_dataframe()
         
+    def _highlight(self, html_code):
+        from IPython.display import HTML
+        formatter = HtmlFormatter(linenos=False, cssclass="source")
+        html_highlight = highlight(html_code, HtmlLexer(), formatter)
+        css_style = formatter.get_style_defs()
+
+        html_template = """<style>
+        {}
+        </style>
+        {}
+        """.format(css_style, html_highlight)
+
+        return HTML(html_template)
+
     def __getitem__(self, index):
         '''
         Args:
@@ -67,7 +84,12 @@ class Book:
         Returns:
             bs4 html object in the flat_bodies
         '''
-        return self.flat_bodies[index]
+        
+        return self._highlight(
+            self._pretty_html(
+                self.flat_bodies[index]
+                )
+            )
     
     def __len__(self):
         return len(self.flat_bodies)
