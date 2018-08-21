@@ -104,6 +104,7 @@ class Book:
         return df
 
     def __repr__(self):
+        self.description_dataframe = self._description_dataframe()
         description = self.description_dataframe.to_string()
         return description
 
