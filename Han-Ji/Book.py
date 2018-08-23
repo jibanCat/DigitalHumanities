@@ -141,7 +141,11 @@ class Book:
             # use urllib.request to get the html content of the website
             req  = request.Request(URL, headers={'User-Agent': 'Mozilla/5.0'})
             page = request.urlopen(req)
-            soup = BeautifulSoup(page, 'lxml')
+            try:
+                soup = BeautifulSoup(page, 'lxml')
+            except bs4.FeatureNotFound as e:
+                logging.warning("lxml parser not found, try to use html5lib")
+                soup = BeautifulSoup(page, "html5lib")
 
             # show information on the screen
             if print_bookmark == True:
@@ -169,13 +173,21 @@ class Book:
                 soup.find_all('div', attrs={'style': True})[0]):
                 logging.warning("This page is the same as the previous one, discard previous one and store the new one.")
                 if html_cutoff == True:
-                    self.flat_bodies[-1] = BeautifulSoup( self._pretty_html(soup), 'lxml' )
+                    try:
+                        self.flat_bodies[-1] = BeautifulSoup( self._pretty_html(soup), 'lxml' )
+                    except bs4.FeatureNotFound as e:
+                        logging.warning("lxml parser not found, try to use html5lib")
+                        self.flat_bodies[-1] = BeautifulSoup( self._pretty_html(soup), "html5lib")
                 else:    
                     self.flat_bodies[-1] = soup
             else:
                 # append to flat bodies
                 if html_cutoff==True:
-                    self.flat_bodies.append( BeautifulSoup( self._pretty_html(soup), 'lxml'))
+                    try:
+                        self.flat_bodies.append( BeautifulSoup( self._pretty_html(soup), 'lxml'))
+                    except bs4.FeatureNotFound as e:
+                        logging.warning("lxml parser not found, try to use html5lib")
+                        self.flat_bodies.append( BeautifulSoup( self._pretty_html(soup), "html5lib"))
                 else:
                     self.flat_bodies.append(soup)
                
@@ -280,7 +292,11 @@ class Book:
                 html = str(soup)
                 for components,(UICODE, char) in rare_char.items(): 
                     html = re.sub(components, char, html)
-                flat_htmls.append(BeautifulSoup(html, "lxml"))
+                try:
+                    flat_htmls.append(BeautifulSoup(html, "lxml"))
+                except bs4.FeatureNotFound as e:
+                    logging.warning("lxml parser not found, try to use html5lib")
+                    flat_htmls.append(BeautifulSoup(html, "html5lib"))
 
             self.flat_bodies = flat_htmls        
 
@@ -351,7 +367,13 @@ class Book:
                 self.bookname, str(i).zfill(4)))
             if os.path.isfile(filename):
                 with open(filename, 'r', encoding='utf-8') as file:
-                    self.flat_bodies.append(BeautifulSoup(file.read(), 'lxml'))
+                    file_read = file.read()
+                    try:
+                        self.flat_bodies.append(BeautifulSoup(file_read, 'lxml'))
+                    except bs4.FeatureNotFound as e:
+                        logging.warning("lxml parser not found, try to use html5lib")
+                        self.flat_bodies.append(BeautifulSoup(file_read, "html5lib"))
+
             else:
                 logging.info("Stop at loading {}.".format(filename))
                 break
