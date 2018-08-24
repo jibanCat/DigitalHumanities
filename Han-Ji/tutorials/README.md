@@ -14,6 +14,8 @@
 
 8. [`SongShu -- Export Natural Geo-Names (洲、山 as an example)`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/SongShu%20--%20Export%20Natural%20Geo-Names%20%28%E6%B4%B2%E3%80%81%E5%B1%B1%20as%20an%20example%29.ipynb): Searching geo-names using word counts.
 
+9. [`SongShu -- Geo Viz Linking Scatter Plot`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/SongShu%20--%20Geo%20Viz%20Linking%20Scatter%20Plot.ipynb): Plotting a scatter plot with a linked histogram.
+
 ## Supplementary
 
 1. [`Skip Certain Kind of Tags in BS4 Object.ipynb`](http://nbviewer.jupyter.org/github/jibanCat/DigitalHumanities/blob/master/Han-Ji/tutorials/Skip%20Certain%20Kind%20of%20Tags%20in%20BS4%20Object.ipynb): How to delete some html tags from the `bs4` tree structure.
