@@ -336,6 +336,70 @@ class Book:
                 for match in re.finditer(self._regexf(char, i), p):
                     yield match.group(0)
 
+    def strip_tag(self, name, attrs={}):
+        '''
+        Get rid of a tag (with certain attributes) from all pages in self.flat_bodies.
+        
+        Args:
+            tag_name (str) : the tag you want to remove from the tree structure from all pages in self.flat_bodies
+            attrs (dict) : a dict contains all attribute names and their corresponding value
+        
+        See also:
+            bs4's find_all https://www.crummy.com/software/BeautifulSoup/bs4/doc/#find-all
+        '''
+        for body in self.flat_bodies:
+            for sentence in body.find_all(name, attrs=attrs):
+                sentence.extract()
+
+    def strip_all_irrelevant_tags(self, connect_the_borken_lines=True, html_cutoff=True):
+        '''
+        remove 標註, page number, and page dividers from the tree structure
+        '''
+        if html_cutoff:
+            flat_bodies = []
+            for item in self.flat_bodies:
+                try:
+                    flat_bodies.append(BeautifulSoup(self._pretty_html(item), "lxml"))
+                except bs4.FeatureNotFound as e:
+                    logging.warning("lxml parser not found, try to use html5lib")
+                    self.flat_bodies.append(BeautifulSoup(self._pretty_html(item), "html5lib"))
+
+            self.flat_bodies = flat_bodies
+
+        self.strip_tag("table", attrs={"class":"page"})
+        self.strip_tag("a",     attrs={"href":"#"})
+        self.strip_tag("span",  attrs={"style":"display:none;width:;height:;color:red;font-size:13px"})
+        self.strip_tag("center")
+        logging.info("Remove 標註, page number, and page dividers from the tree structure.")
+
+        if connect_the_borken_lines:
+            self.connect_the_borken_lines()
+            logging.info("Remove the new lines added by the page dividers, connect the paragraphs before and after the new lines.")
+
+
+    def connect_the_borken_lines(self):
+        '''
+        Remove the new lines added by the page dividers, connect the paragraphs before and after the new lines.
+        This method must be run after the self.strip_all_irrelevant_tags.
+
+        TODO: fix the borken new lines in the quoted paragraphs
+        '''
+        # loop over body in flat_bodies:
+        for i,item in enumerate(self.flat_bodies):
+            # the item here is a bs4 object, so we need to convert it to a string
+            string_item = str(item)
+            
+            # and then, substitute the regex pattern in the html source code in the item
+            updated_string_item = re.sub(
+                r'<\/div>([^\w]|\n)*?<div style="text-indent:0em;padding-left:0em;">', 
+                r"", 
+                string_item
+            )
+            
+            # and then, we need to update the variable, item (with regex substituted), back into the flat_bodies list.
+            # Note that the updated_string_item has to be converted to bs4 object
+            self.flat_bodies[i] = BeautifulSoup(updated_string_item, "lxml")
+
     def write_htmls(self, path='data/', html_cutoff=False):
         '''writing all htmls in flat_bodies to the folder data/
 

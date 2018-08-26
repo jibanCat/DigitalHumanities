@@ -51,6 +51,8 @@ class WenXuan(Book):
 
     def extract_all(self):
         self.update_rare_chars()
+        self.strip_all_irrelevant_tags()
+        
         self.extract_paths()         # extract the bookmarks
         self.get_author_bag()        # get the bag of author names and comments
         self.extract_meta()          # extract the meta data

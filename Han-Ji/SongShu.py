@@ -33,8 +33,10 @@ class SongShu(Book):
         Book.__init__(self, 'SongShu', date, creator)
 
     def extract_all(self):
-        # preprocessing the songshu data to get metadata and bookmarks
         self.update_rare_chars()
+        self.strip_all_irrelevant_tags()
+
+        # preprocessing the songshu data to get metadata and bookmarks
         # and separate the passages in every pages
         self.extract_paths()
         self.extract_meta()
