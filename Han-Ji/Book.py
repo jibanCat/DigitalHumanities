@@ -108,10 +108,17 @@ class Book:
         description = self.description_dataframe.to_string()
         return description
 
-    def pretty_print(self, index):
+    def pretty_print(self, index, highlight=None):
         """pretty print the html source page in a Jupyter notebook cell output"""
         from IPython.display import HTML
-        return HTML(self._pretty_html( self.flat_bodies[index] ))
+        pretty_html_string = self._pretty_html( self.flat_bodies[index] )
+        if highlight:
+            pretty_html_string = re.sub(
+                r"({})".format(highlight), 
+                r'<font style="color: k; background-color: #ffff42">\1</font>',
+                pretty_html_string
+            )
+        return HTML(pretty_html_string)
 
     def _pretty_html(self, soup):
         """cut off irrelevant content, such as side columns in the webpage, from the Han-Ji HTML source page. 
