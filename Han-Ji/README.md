@@ -22,6 +22,14 @@ book.write_htmls(path="data")
 book.load_htmls(path="data")
 ```
 
+- To clean the data stored in `book.flat_bodies`, we have set some general rules to clean the tree structure: we don't care **1)** the tags that are not relevant to the actual text content, **2)** the page dividers (and the page numbers), and **3)** we don't care 標註. Just run the method below to remove all irrelevant tags: 
+
+```python
+# just run this class method to remove all irelevant tags from the tree structure in book.flat_bodies
+book.strip_all_irrelevant_tags()
+```
+
+
 - Exctract the bookmark (the dependencies of the poems) out of the page, just typed
 
 ```python
