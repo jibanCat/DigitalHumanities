@@ -428,7 +428,7 @@ class Book:
                 else:
                     file.write(str(soup))
                         
-    def load_htmls(self, path='data/'):
+    def load_htmls(self, path='data/', html_cutoff=False):
         '''loading all files with filename = "bookname_*.html" in path data/
         '''
         self.flat_bodies = []
@@ -436,14 +436,22 @@ class Book:
         while 1:
             filename = os.path.join(path, '{}_{}.html'.format(
                 self.bookname, str(i).zfill(4)))
+
             if os.path.isfile(filename):
                 with open(filename, 'r', encoding='utf-8') as file:
                     file_read = file.read()
+
                     try:
-                        self.flat_bodies.append(BeautifulSoup(file_read, 'lxml'))
+                        soup = BeautifulSoup(file_read, 'lxml')
+                        if html_cutoff==True:
+                            soup = BeautifulSoup( self._pretty_html(soup), "lxml" )
                     except bs4.FeatureNotFound as e:
                         logging.warning("lxml parser not found, try to use html5lib")
-                        self.flat_bodies.append(BeautifulSoup(file_read, "html5lib"))
+                        soup = BeautifulSoup(file_read, "html5lib")
+                        if html_cutoff==True:
+                            soup = BeautifulSoup( self._pretty_html(soup), "html5lib" )
+
+                self.flat_bodies.append( soup )
 
             else:
                 logging.info("Stop at loading {}.".format(filename))
