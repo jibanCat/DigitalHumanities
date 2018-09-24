@@ -21,7 +21,7 @@ class NaiveBayes:
     Args:
         names (list) : a list of feature names.
         iterables (list) : a list of iterables corresponding to feature names.
-        likelihoods (list) : a list of probabilities corresponing to feature names.
+        likelihoods (list) : a list of probabilities corresponding to feature names.
         prior (float) : a prior probability associated with the type of tag you want to calssify.
     """
 
